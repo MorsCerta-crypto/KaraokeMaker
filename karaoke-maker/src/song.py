@@ -1,13 +1,14 @@
-from typing import Optional,Any
+from typing import Optional, Any
 from dataclasses import dataclass
+
+from cv2 import exp
+
 
 @dataclass
 class Song:
-    raw_track_meta:dict[str,Any]
-    youtube_link:str
-    lyrics:str
-    playlist:dict[str,str]
-    
+    raw_track_meta: dict[str, Any]
+    youtube_link: str
+    lyrics: str
 
     @property
     def song_name(self) -> str:
@@ -26,7 +27,7 @@ class Song:
 
     @property
     def display_name(self) -> str:
-        """ returns songs's display name """
+        """returns songs's display name"""
 
         return str(", ".join(self.contributing_artists) + " - " + self.song_name)
 
@@ -38,15 +39,18 @@ class Song:
         )
 
     @staticmethod
-    def create_file_name(song_name: str, song_artists: list[str]) -> str:
+    def create_file_name(
+        song_name: str, song_artists: list[str], ext: Optional[str] = None
+    ) -> str:
 
         artist_string = song_artists[0]
         for artist in song_artists[1:]:
             if artist.lower() not in song_name.lower():
-                artist_string += ", " + artist
-
-        converted_file_name = f"{artist_string}-{song_name}"
-
+                artist_string += "-" + artist
+        if ext:
+            converted_file_name = f"{artist_string}-{song_name}.{ext}"
+        else:
+            converted_file_name = f"{artist_string}-{song_name}"
         # remove characters
         converted_file_name = (
             converted_file_name.replace("/?\\*|<>", "")
