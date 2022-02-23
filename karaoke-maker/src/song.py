@@ -1,8 +1,6 @@
 from typing import Optional, Any
 from dataclasses import dataclass
 
-from cv2 import exp
-
 
 @dataclass
 class Song:
