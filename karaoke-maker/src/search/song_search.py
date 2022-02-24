@@ -3,9 +3,7 @@ from typing import Optional
 from song import Song
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
-from rapidfuzz import fuzz
 import yt_search
-import lyrics
 
 
 class Search:
@@ -17,7 +15,7 @@ class Search:
         self.output_format = output_format
         self.songs_path = songs_path
 
-    def from_search_term(self, query: str) -> list[Song]:
+    def from_search_term(self, query: str) -> Optional[Song]:
         """tries to find a song on spotify with a given searchterm
 
         Args:
@@ -39,9 +37,9 @@ class Search:
         song_url = "http://open.spotify.com/track/" + result["tracks"]["items"][0]["id"]
         try:
             song = self.from_spotify_url(song_url)
-            return [song] if song.youtube_link is not None else []
+            return song if song.youtube_link is not None else None
         except (LookupError, OSError, ValueError):
-            return []
+            return None
 
     def from_spotify_url(self, spotify_url: str) -> Song:
         """finds a song on spotify with a given song-url
