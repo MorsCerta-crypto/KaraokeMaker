@@ -54,7 +54,12 @@ class Downloader:
 
         return file_path
 
-    def download_song(self, song_object: Song, temp_folder: str, file_path: str) -> Optional[str]:
+    def download_song(
+        self,
+        song_object: Song,
+        temp_folder: str = "data/temp/",
+        file_path: str = "/data/downloads/",
+    ) -> Optional[str]:
         """downloads a given song if it is not in file system
 
         Args:
