@@ -46,9 +46,7 @@ def best_result(
 
     for result in results:
         if result == {}:
-            print("res 0")
             continue
-        print(result.title)
         lower_song_name = song_name.lower()
         lower_result_name = result.title.lower()
         sentence_words = lower_song_name.replace("-", " ").split(" ")
@@ -67,7 +65,6 @@ def best_result(
                 artist_matches += 1
 
         # if artist_matches == 0:
-        #     print("artist 0")
         #     continue
         # compute similarity between all artists
         artist_score = (artist_matches / len(song_artists)) * 100
@@ -75,7 +72,9 @@ def best_result(
         song_title = f"{joined_artists} - {song_name}".lower()
         # find similarity between names
         name_score = round(
-            get_score_above(60, unidecode(result.title.lower()), unidecode(song_title)),
+            get_score_above(
+                60, unidecode(result.title.lower()), unidecode(song_title)
+            ),  # type:ignore
             ndigits=3,
         )
 
