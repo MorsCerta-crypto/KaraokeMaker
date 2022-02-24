@@ -15,6 +15,7 @@ class Search:
         )
 
         self.output_format = output_format
+        self.songs_path = songs_path
 
     def from_search_term(self, query: str) -> list[Song]:
         """tries to find a song on spotify with a given searchterm
@@ -77,7 +78,7 @@ class Search:
             converted_file_name = Song.create_file_name(song_name, [""])
 
         converted_file_path = Path(
-            "data/downloads", f"{converted_file_name}.{self.output_format}"
+            self.songs_path, f"{converted_file_name}.{self.output_format}"
         )
 
         # if a song is already downloaded skip it
