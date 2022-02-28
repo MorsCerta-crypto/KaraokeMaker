@@ -1,9 +1,9 @@
 from pathlib import Path
 from typing import Optional
-from song import Song
+from ..song import Song
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
-import yt_search
+from . import yt_search
 
 
 class Search:
