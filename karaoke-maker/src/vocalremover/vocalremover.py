@@ -4,7 +4,6 @@ import librosa
 import numpy as np
 import soundfile as sf
 import torch
-from tqdm import tqdm
 
 from src.vocalremover import nets, utils
 
@@ -56,7 +55,7 @@ class VocalRemover:
         if not file.split(".")[1] in ["mp3", "wav"]:
             raise ValueError("file ending not supported")
         X, sample_rate = librosa.load(
-            file, self.sample_rate, False, dtype=np.float32, res_type="kaiser_fast"
+            file, sr=self.sample_rate, mono=False, dtype=np.float32, res_type="kaiser_fast"
         )
         basename = os.path.splitext(os.path.basename(file))[0]
 
@@ -94,7 +93,7 @@ class VocalRemover:
         with torch.no_grad():
             mask = []
             # To reduce the overhead, dataloader is not used.
-            for i in tqdm(range(0, patches, self.batchsize)):
+            for i in range(0, patches, self.batchsize):
                 X_batch = X_dataset[i : i + self.batchsize]  # type:ignore
                 X_batch = torch.from_numpy(X_batch).to(self.device)
 
