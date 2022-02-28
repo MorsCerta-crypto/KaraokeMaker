@@ -143,9 +143,7 @@ if __name__ == "__main__":
 
     d = Downloader()
     d.download_song(
-        song_object=Song(
-            meta_data, "https://youtube.com/watch?v=N0hFf-twPlY", "heealaaa"
-        ),
+        song_object=Song(meta_data, "", ""),
         temp_folder="data/temp",
         file_path="data/downloads/",
     )
