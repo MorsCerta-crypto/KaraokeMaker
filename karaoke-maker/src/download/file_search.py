@@ -3,6 +3,7 @@ find song if already downloaded in filesystem
 """
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional, Union
 import pickle
 
@@ -14,9 +15,12 @@ class DownloadedSongs:
         self.song_name = ""
         self.song_path = ""
 
-    def handle_download_success(self):
+    def handle_download_success(self, song_name: Optional[str]):
         """stores an song-path-pair if download was successfully"""
+        if song_name:
+            self.song_name = song_name
         if self.song_name != "" and self.song_path != "":
+            print("attr:", self.song_name, self.song_path)
             self.add_songs_to_file()
         else:
             raise ValueError("song_name and song_path must not be empty")
@@ -59,6 +63,9 @@ class DownloadedSongs:
             return None
 
     def read_songs_from_file(self) -> Union[dict, None]:
+        # saving_path = Path(self.songs_path)
+        # saving_path.parent.mkdir(parents=True, exist_ok=True)
+
         with open(self.songs_path, "rb") as fp:
             songs = pickle.load(fp)
         return songs
@@ -70,7 +77,8 @@ class DownloadedSongs:
             song_name (str): name of the currently searched song
             song_path (str): path where the download will go
         """
-        current_songs = self.read_songs_from_file()
+        # current_songs = self.read_songs_from_file()
+        current_songs = dict()
         if not current_songs:
             current_songs = dict()
         current_songs[self.song_name] = self.song_path
