@@ -1,9 +1,10 @@
+from typing import Optional
 from lyricsgenius import Genius
 
 
 class SongLyrics:
     def __init__(self):
-        self.genius = Genius
+        self.genius = Genius()
         # Turn off status messages
         self.genius.verbose = False
 
@@ -16,12 +17,13 @@ class SongLyrics:
         # Exclude songs with these words in their title
         # genius.excluded_terms = ["(Remix)", "(Live)"]
 
-    def get_lyrics_by_song_name(self, song_title: str) -> str:
+    def get_lyrics_by_song_name(self, song_title: str) -> Optional[str]:
         """find the song by its title"""
-        song = self.genius.search_song(song_title)
-        return song.lyrics
+        song = self.genius.search_song(title=song_title)
+        if song:
+            return song.lyrics
 
-    def get_song_name_by_lyrics(self, lyrics_term: str) -> str:
+    def get_song_name_by_lyrics(self, lyrics_term: str) -> list[str]:
         """find the song name from lyrics"""
         song_names = []
         request = self.genius.search_lyrics(lyrics_term)
@@ -29,9 +31,11 @@ class SongLyrics:
             song_names.append(hit["result"]["title"])
         return song_names
 
-    def get_lyrics_by_artist_and_song(self, artist_name: str, song: str) -> str:
+    def get_lyrics_by_artist_and_song(self, artist_name: str, song: str) -> Optional[str]:
         """find the lyrics for a song with a known artist"""
         # artist = self.genius.search_artist(artist_name, max_songs=1)
 
-        search_song = self.genius.search_song(song, artist_name)
-        return search_song.lyrics
+        search_song = self.genius.search_song(title=song, artist=artist_name)
+        if search_song:
+            return str(search_song.lyrics)
+        
