@@ -2,9 +2,9 @@ import asyncio
 import os
 from pathlib import Path
 from typing import Optional
-from yt_dlp import YoutubeDL
-from song import Song
-from file_search import DownloadedSongs
+import youtube_dl
+from ..song import Song
+from .file_search import DownloadedSongs
 
 
 class Downloader:
@@ -12,7 +12,7 @@ class Downloader:
         self,
         format: str = "mp3",
         output_path: str = "/data/downloads/",
-        ytdl_format: str = "bestaudio",
+        ytdl_format: str = "bestaudio/best",
     ):
         self.format = format
         self.output_path = output_path
@@ -57,8 +57,8 @@ class Downloader:
     def download_song(
         self,
         song_object: Song,
-        temp_folder: str = "data/temp/",
-        file_path: str = "/data/downloads/",
+        temp_folder: str = "karaoke-maker/data/temp",
+        file_path: str = "karaoke-maker/data/downloads/",
     ) -> Optional[str]:
         """downloads a given song if it is not in file system
 
@@ -78,66 +78,40 @@ class Downloader:
         )
         saving_path = Path(saving_name)
 
-        saving_path.parent.mkdir(parents=True, exist_ok=True)
+        # saving_path.parent.mkdir(parents=True, exist_ok=True)
         if saving_path.is_file():
             return saving_name
 
         if self.downloaded_songs.path_in_file(saving_name):
             return saving_name
 
-        audio_handler = YoutubeDL(
-            {
-                "format": self.ytdl_format,
-                "outtmpl": f"{temp_folder}/%(id)s.%(ext)s",
-                "quiet": True,
-                "no_warnings": True,
-            }
-        )
-
+        options = {
+            "format": self.ytdl_format,
+            "keepvideo": False,
+            "outtmpl": saving_name,
+            "noplaylist": True,
+            "continue_dl": True,
+            "postprocessors": [
+                {
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": self.format,
+                    "preferredquality": "192",
+                }
+            ],
+        }
+        success = False
         try:
-            downloaded_file_path_string = self.downlaod_audio(
-                file_name=file_path.split(".")[0],
-                temp_folder=temp_folder,
-                audio_handler=audio_handler,
-                youtube_link=song_object.youtube_link,
+            video_info = youtube_dl.YoutubeDL(options).extract_info(
+                url=song_object.youtube_link, download=True
             )
+            if video_info:
+                print(video_info)
+                success = True
         except Exception as e:
-            print(
-                f'No audio was downloaded for "{song_object.song_name}", because of {e}'
-            )
-            return None
+            print("download failed ", e)
 
-        if downloaded_file_path_string is None:
-            return None
-
-        downloaded_file_path = Path(str(downloaded_file_path_string))
-        cmd = " ".join(
-            [
-                "ffmpeg",
-                "-i",
-                downloaded_file_path_string,
-                "-codec:a",
-                "libmp3lame",
-                "-abr",
-                "true",
-                "-q:a",
-                "0",
-                "-v",
-                "debug",
-                saving_name,
-            ]
-        )
-        os.system(cmd)
-        # conversion_success = True if process.returncode == 0 else False
-        conversion_success = True
-        if conversion_success is False:
-            print("no success in converting")
-            # delete the file that wasn't successfully converted
-            saving_path.unlink()
-
-        # delete downloaded file
-        if downloaded_file_path and downloaded_file_path.is_file():
-            downloaded_file_path.unlink()
+        if success:
+            self.downloaded_songs.handle_download_success(converted_file_path)
 
         return saving_name
 
@@ -147,8 +121,9 @@ class Downloader:
 
         try:
             data = audio_handler.extract_info(youtube_link)
-
-            return f"{temp_folder}/{data['id']}.{data['ext']}"
+            if not temp_folder.endswith("/"):
+                temp_folder = temp_folder + "/"
+            return f"{temp_folder}{data['id']}.{data['ext']}"
         except Exception as e:
 
             temp_files = Path(temp_folder).glob(f"{file_name}.*")
