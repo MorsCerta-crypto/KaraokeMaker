@@ -95,7 +95,7 @@ class Search:
         lyrics = ""
         # lyrics = lyrics.get_lyrics(song_name, contributing_artists)
 
-        return Song(raw_track_meta, youtube_link, lyrics)
+        return Song(raw_track_meta, youtube_link, lyrics, converted_file_path, song_name)
 
     def get_metadata_from_url(self, spotify_url: str):
 
