@@ -5,13 +5,13 @@ from typing import Optional
 import youtube_dl
 from ..song import Song
 from .file_search import DownloadedSongs
-
+from src.lyrics.lyrics import SongLyrics
 
 class Downloader:
     def __init__(
         self,
         format: str = "mp3",
-        output_path: str = "/data/downloads/",
+        output_path: str = "karaoke-maker/data/downloads/",
         ytdl_format: str = "bestaudio/best",
     ):
         self.format = format
@@ -111,7 +111,9 @@ class Downloader:
             print("download failed ", e)
 
         if success:
-            self.downloaded_songs.handle_download_success(converted_file_path)
+            Lyrics = SongLyrics()
+            song_object.lyrics = Lyrics.get_lyrics_by_song_name(song_object.song_name)
+            self.downloaded_songs.handle_download_success(song_object)
 
         return saving_name
 
