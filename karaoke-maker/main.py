@@ -3,6 +3,8 @@ from src.download.downloader import Downloader
 
 from src.vocalremover.vocalremover import VocalRemover
 from src.lyrics.lyrics import SongLyrics
+from src.gui.interface import main
+from src.gui.music_player import MusicPlayer
 
 CONFIG = {
     "song_format": "mp3",
@@ -11,8 +13,9 @@ CONFIG = {
 }
 
 
-def run_project(term):
-
+def run_project():
+    """runs project via interface or with normal commands"""
+    # term = input("enter song name\n")
     # search = Search(
     #     output_format=CONFIG["song_format"], songs_path=CONFIG["output_path"]
     # )
@@ -34,14 +37,9 @@ def run_project(term):
     # remover = VocalRemover()
     # remover.remove_vocals(path)
     
-    lyrics = SongLyrics()
-    lyrics_text = lyrics.get_lyrics_by_song_name(term)
-    print(lyrics_text)
-    lyrics.on_success()
+    main(search = Search, downloader = Downloader, lyrics = SongLyrics, vocal_remover = VocalRemover)
     
-    
-
 
 if __name__ == "__main__":
-    term = "nightlife - off with their heads"
-    run_project(term)
+    
+    run_project()
