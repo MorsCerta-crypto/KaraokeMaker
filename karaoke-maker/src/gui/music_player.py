@@ -1,10 +1,7 @@
-from tkinter import *
-#from tkinter.ttk import *
+from tkinter import (StringVar,Toplevel,LabelFrame,Label,
+                     Button,Scrollbar,Listbox,VERTICAL,RIGHT,
+                     Tk,BOTH,END,ACTIVE,SINGLE,GROOVE)
 import pygame
-import os
-
-
-
 
 class MusicPlayer(object):
     
