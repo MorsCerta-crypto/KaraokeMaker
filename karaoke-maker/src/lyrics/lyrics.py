@@ -8,11 +8,8 @@ class SongLyrics:
     def __init__(self):
         self.lyrics_str=""
         self.genius = Genius()
-        # Turn off status messages
-        self.genius.verbose = False
-        # Remove section headers (e.g. [Chorus]) from lyrics when searching
-        self.genius.remove_section_headers = True
-        # Include hits thought to be non-songs (e.g. track lists)
+        self.genius.verbose = False #suppress output
+        self.genius.remove_section_headers = True #remove headers like chorus
         self.genius.skip_non_songs = False
         # Exclude songs with these words in their title
         # genius.excluded_terms = ["(Remix)", "(Live)"]
