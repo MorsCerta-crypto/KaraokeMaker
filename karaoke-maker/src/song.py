@@ -1,17 +1,20 @@
 from typing import Optional, Any
 from dataclasses import dataclass
-
+from pathlib import Path
 
 @dataclass
 class Song:
     raw_track_meta: dict[str, Any]
     youtube_link: str
     lyrics: str
+    file_path:Path
+    song_name:str
+  
 
-    @property
-    def song_name(self) -> str:
-        """returns songs's name"""
-        return self.raw_track_meta["name"]
+    # @property
+    # def song_name(self) -> str:
+    #     """returns songs's name"""
+    #     return self.raw_track_meta["name"]
 
     @property
     def duration(self) -> float:
