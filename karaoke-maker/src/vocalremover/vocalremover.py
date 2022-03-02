@@ -70,14 +70,14 @@ class VocalRemover:
         # nverse stft of instruments
         wave = utils.spectrogram_to_wave(y_spec, hop_length=self.hop_length)
         sf.write(
-            f"{self.instrumentals_folder}/backing_tracks/{basename}_Instruments.wav",
+            f"{self.instrumentals_folder}{basename}_Instruments.wav",
             wave.T,  # type:ignore
             sample_rate,
         )
 
         # inverse stft of vocals
         wave = utils.spectrogram_to_wave(v_spec, hop_length=self.hop_length)
-        sf.write("{}_Vocals.wav".format(basename), wave.T, sample_rate)  # type:ignore
+        sf.write(f"{self.vocals_folder}{basename}_Vocals.wav", wave.T, sample_rate)  # type:ignore
 
     def _separate(self, X_mag_pad, roi_size):
         X_dataset = []
