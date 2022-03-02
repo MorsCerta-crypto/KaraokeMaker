@@ -2,26 +2,21 @@ import os
 from pathlib import Path
 from typing import Optional
 from lyricsgenius import Genius
-
+from ..song import Song
 
 class SongLyrics:
     def __init__(self):
         self.lyrics_str=""
-        self.export_dir = Path("/karaoke-maker/data/lyrics/")
-        #if not os.path.exists(self.export_dir):
-        #    os.makedirs(self.export_dir)
         self.genius = Genius()
         # Turn off status messages
         self.genius.verbose = False
-
         # Remove section headers (e.g. [Chorus]) from lyrics when searching
         self.genius.remove_section_headers = True
-
         # Include hits thought to be non-songs (e.g. track lists)
         self.genius.skip_non_songs = False
-
         # Exclude songs with these words in their title
         # genius.excluded_terms = ["(Remix)", "(Live)"]
+    
 
     def get_lyrics_by_song_name(self, song_title: str) -> Optional[str]:
         """find the song by its title"""
@@ -49,15 +44,6 @@ class SongLyrics:
             self.lyrics_str =  song.to_text()
             return song.to_text()
         
-    def on_success(self):
-        name = self.song_name+".txt"
-        path = self.export_dir/name
-        if self.lyrics_str == "" or self.lyrics_str is None:
-            raise ValueError("lyrics are empty")
-        #if not os.path.exists(path):
-        #    os.makedirs(path)
-        with open(path,"w+") as f:
-            f.write(self.lyrics_str)
             
         
 
