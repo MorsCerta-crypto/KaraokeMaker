@@ -3,6 +3,7 @@ find song if already downloaded in filesystem
 """
 
 from dataclasses import dataclass
+import os
 from pathlib import Path
 from typing import Optional, Union
 import pickle
@@ -11,7 +12,7 @@ from ..song import Song
 
 @dataclass
 class DownloadedSongs:
-    def __init__(self, songs_path: str = "/data/songs/"):
+    def __init__(self, songs_path: str = "karaoke-maker/data/downloads/"):
         self.songs_path = songs_path + "downloads.txt"
         self.song = None
 
@@ -45,19 +46,23 @@ class DownloadedSongs:
                 return song.file_path
 
     def read_songs_from_file(self) -> Optional[list]:
-        # saving_path = Path(self.songs_path)
-        # saving_path.parent.mkdir(parents=True, exist_ok=True)
+        saving_path = Path(self.songs_path)
+        saving_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        if os.path.getsize(self.songs_path) > 0:     
+            with open(self.songs_path,"rb") as f:
+                unpickler = pickle.Unpickler(f)
+                songs = unpickler.load()
+                return songs
 
-        with open(self.songs_path, "rb") as fp:
-            songs = pickle.load(fp)
-        return songs
+        
 
     def add_songs_to_file(self,song) -> None:
         """if a song was searched add it to a temp file, if downloading was a success, add it to the song list
 
         Args:
-            song_name (str): name of the currently searched song
-            song_path (str): path where the download will go
+            song (Song): obj of the currently searched song
+            
         """
         current_songs = self.read_songs_from_file()
         if current_songs:
