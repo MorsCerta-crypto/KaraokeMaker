@@ -1,4 +1,5 @@
 from tkinter import *
+#from tkinter.ttk import *
 import pygame
 import os
 
@@ -8,9 +9,9 @@ import os
 class MusicPlayer(object):
     
     def __init__(self,root):
-        self.root = root
+        self.root = Toplevel(root)
         self.root.title("MusicPlayer")
-        self.root.geometry("1000x200+200+200")
+        self.root.geometry("1000x250")
         pygame.init()
         pygame.mixer.init()
         self.track = StringVar()
@@ -18,8 +19,8 @@ class MusicPlayer(object):
 
         trackframe = LabelFrame(self.root,text="Song Track",font=("times new roman",15,"bold"),bg="Navyblue",fg="white",bd=5,relief=GROOVE)
         trackframe.place(x=0,y=0,width=600,height=100)
-        songtrack = Label(trackframe,textvariable=self.track,width=20,font=("times new roman",24,"bold"),bg="Orange",fg="gold").grid(row=0,column=0,padx=10,pady=5)
-        trackstatus = Label(trackframe,textvariable=self.status,font=("times new roman",24,"bold"),bg="orange",fg="gold").grid(row=0,column=1,padx=10,pady=5)
+        songtrack = Label(trackframe,textvariable=self.track,width=40,font=("times new roman",18,"bold"),bg="Orange",fg="gold").grid(row=0,column=0,padx=10,pady=5)
+        trackstatus = Label(trackframe,textvariable=self.status,font=("times new roman",18,"bold"),bg="orange",fg="gold").grid(row=0,column=1,padx=10,pady=5)
 
         buttonframe = LabelFrame(self.root,text="Control Panel",font=("times new roman",15,"bold"),bg="grey",fg="white",bd=5,relief=GROOVE)
         buttonframe.place(x=0,y=100,width=600,height=100)
