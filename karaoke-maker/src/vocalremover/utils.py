@@ -12,8 +12,6 @@ def crop_center(h1, h2):
     elif h1_shape[3] < h2_shape[3]:
         raise ValueError("h1_shape[3] must be greater than h2_shape[3]")
 
-    # s_freq = (h2_shape[2] - h1_shape[2]) // 2
-    # e_freq = s_freq + h1_shape[2]
     s_time = (h1_shape[3] - h2_shape[3]) // 2
     e_time = s_time + h2_shape[3]
     h1 = h1[:, :, :, s_time:e_time]
@@ -25,10 +23,9 @@ def wave_to_spectrogram(wave, hop_length, n_fft):
     wave_left = np.asfortranarray(wave[0])  # type:ignore
     wave_right = np.asfortranarray(wave[1])  # type:ignore
 
-    spec_left = librosa.stft(wave_left, n_fft, hop_length=hop_length)
-    spec_right = librosa.stft(wave_right, n_fft, hop_length=hop_length)
+    spec_left = librosa.stft(wave_left, n_fft=n_fft, hop_length=hop_length)
+    spec_right = librosa.stft(wave_right, n_fft=n_fft, hop_length=hop_length)
     spec = np.asfortranarray([spec_left, spec_right])  # type:ignore
-
     return spec
 
 
@@ -68,7 +65,7 @@ def aggressively_remove_vocal(X, y, weight):
     return y_mag * np.exp(1.0j * np.angle(y))  # type:ignore
 
 
-def merge_artifacts(y_mask, thres=0.05, min_range=64, fade_size=32):
+def merge_artifacts(y_mask, thres:float=0.05, min_range:int=64, fade_size:int=32):
     if min_range < fade_size * 2:
         raise ValueError("min_range must be >= fade_size * 2")
 
