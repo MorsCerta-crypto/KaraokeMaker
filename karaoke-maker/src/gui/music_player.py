@@ -17,8 +17,8 @@ class MusicPlayer(object):
 
         trackframe = LabelFrame(self.root,text="Song Track",font=("times new roman",15,"bold"),bg="Navyblue",fg="white",bd=5,relief=GROOVE)
         trackframe.place(x=0,y=0,width=600,height=100)
-        songtrack = Label(trackframe,textvariable=self.track,width=40,font=("times new roman",18,"bold"),bg="Orange",fg="gold").grid(row=0,column=0,padx=10,pady=5)
-        trackstatus = Label(trackframe,textvariable=self.status,font=("times new roman",15,"bold"),bg="orange",fg="gold").grid(row=0,column=1,padx=10,pady=5)
+        Label(trackframe,textvariable=self.track,width=40,font=("times new roman",18,"bold"),bg="Orange",fg="gold").grid(row=0,column=0,padx=10,pady=5)
+        Label(trackframe,textvariable=self.status,font=("times new roman",15,"bold"),bg="orange",fg="gold").grid(row=0,column=1,padx=10,pady=5)
 
         buttonframe = LabelFrame(self.root,text="Control Panel",font=("times new roman",15,"bold"),bg="grey",fg="white",bd=5,relief=GROOVE)
         buttonframe.place(x=0,y=100,width=600,height=100)
@@ -68,6 +68,7 @@ class MusicPlayer(object):
         pygame.mixer.music.unpause()
         
     def on_closing(self):
+        self.stopsong()
         self.root.destroy()
 
 
