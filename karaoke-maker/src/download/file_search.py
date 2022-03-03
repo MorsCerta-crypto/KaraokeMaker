@@ -5,7 +5,7 @@ find song if already downloaded in filesystem
 from dataclasses import dataclass
 import os
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 import pickle
 from ..song import Song
 
