@@ -1,0 +1,17 @@
+{
+    "song_format": "mp3",
+    "output_path": "karaoke-maker/data/downloads/",
+    "ytdl_format": "bestaudio/best",
+    "downloads_path": "karaoke-maker/data/downloads/downloads.txt",
+    "output_format": "mp3",
+    "songs_path": "karaoke-maker/data/downloads",
+    "batchsize": 4,
+    "cropsize": 256,
+    "postprocess": false,
+    "tta": false,
+    "hop_length": 1024,
+    "n_fft": 2048,
+    "pretrained_model": "karaoke-maker/data/models/baseline.pth",
+    "sample_rate": 44100,
+    "export_folder": "karaoke-maker/data"
+}
