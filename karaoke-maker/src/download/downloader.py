@@ -57,14 +57,12 @@ class Downloader:
     def download_song(
         self,
         song_object: Song,
-        temp_folder: str = "karaoke-maker/data/temp",
         file_path: str = "karaoke-maker/data/downloads/",
     ) -> Optional[str]:
         """downloads a given song if it is not in file system
 
         Args:
             song_object (Song): song object that sould be downloaded
-            temp_folder (str): folder to store temporary download file
             file_path (str): filepath to store the final file
 
         Retruns:
@@ -112,40 +110,19 @@ class Downloader:
 
         if success:
             Lyrics = SongLyrics()
-            song_object.lyrics = Lyrics.get_lyrics_by_song_name(song_object.song_name)
+            artist = song_object.contributing_artists[0]
+            song_object.lyrics = Lyrics.get_lyrics_by_artist_and_song(artist_name=artist,song_title=song_object.song_name)
             self.downloaded_songs.handle_download_success(song_object)
 
         return saving_name
 
-    def downlaod_audio(
-        self, youtube_link: str, file_name: str, temp_folder: str, audio_handler
-    ):
-
-        try:
-            data = audio_handler.extract_info(youtube_link)
-            if not temp_folder.endswith("/"):
-                temp_folder = temp_folder + "/"
-            return f"{temp_folder}{data['id']}.{data['ext']}"
-        except Exception as e:
-
-            temp_files = Path(temp_folder).glob(f"{file_name}.*")
-            for temp_file in temp_files:
-                temp_file.unlink()
-            raise e
 
 
 if __name__ == "__main__":
-    artist1 = dict()
-    artist2 = dict()
-    meta_data = dict()
-    artist1["name"] = "John"
-    artist2["name"] = "elvis"
-    meta_data["name"] = "song_name"
-    meta_data["artists"] = [artist1, artist2]
+    
 
     d = Downloader()
     d.download_song(
-        song_object=Song(meta_data, "", ""),
-        temp_folder="data/temp",
+        song_object=None,
         file_path="data/downloads/",
     )
