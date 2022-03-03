@@ -39,7 +39,7 @@ class SongLyrics:
         if song:
             self.song_name = song.full_title.encode("ascii", "ignore").decode()
             self.lyrics_str =  song.to_text()
-            return song.to_text()
+            return self.lyrics_str
         
             
         
