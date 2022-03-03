@@ -1,4 +1,4 @@
-from tkinter import Tk,StringVar,N,Label,mainloop,CENTER,Toplevel,VERTICAL
+from tkinter import Tk,StringVar,N,Label,mainloop
 
 def show_lyrics(lyrics,root): 
 
