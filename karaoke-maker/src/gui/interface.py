@@ -17,13 +17,13 @@ class Interface:
         
         self.root = root
         self.root.title("Select a Song")
-        self.root.geometry("1000x600+200+200")
+        self.root.geometry("1000x600+700+250")
         self.root.configure(bg='light grey')
         
-        self.search_spot_commit = Button(self.root,text = "Search",width=30,fg = 'black',font=('Arial',16,'bold'),command=self.search_song_spotify)
-        self.search_loc_commit = Button(self.root,text = "Search",width=30,fg = 'black',font=('Arial',16,'bold'),command=self.search_song_local)
+        self.search_spot_commit = Button(self.root,text = "Search on Spotify",width=30,fg = 'black',font=('Arial',16,'bold'),command=self.search_song_spotify)
+        self.search_loc_commit = Button(self.root,text = "Search Local",width=30,fg = 'black',font=('Arial',16,'bold'),command=self.search_song_local)
         self.search_spot_commit.grid(column=1,row=0)
-        self.search_loc_commit.grid(column=2,row=0)
+        self.search_loc_commit.grid(column=1,row=1)
         text = StringVar()
         self.search_field = Entry(self.root,width=80,textvariable=text)
         self.search_field.grid(column=0,row=0)
@@ -45,9 +45,11 @@ class Interface:
         
     def select_song_by_cursor(self,event):
         """select a song by cursor"""
-        index = self.display_songs.curselection()[0]
+        index = self.display_songs.curselection()
+        if isinstance(index,tuple) and index != ():
+            index = index[0]
+        else: return
         name = self.get_song_name_from_repr(self.display_songs.get(index))
-        print("name: ",name)
         
         #find a match in all songs
         match_song = None
@@ -62,45 +64,39 @@ class Interface:
         #set self.Song to the currently selected song
         self.Song = match_song
         path = str(self.Song.file_path)
-        print("path: ",path)
         if path == []:
             raise ValueError(f"stored no path for this song: {name}")
         basename = os.path.splitext(os.path.basename(path))[0]
         file = f"karaoke-maker/data/backing_tracks/{basename}_Instruments.wav"
         if not os.path.isfile(path):
             #download song if it does not exist
-            self.download_song()
-        elif not os.path.isfile(file):
+            saved_at = self.download_song()
+            print("downloaded song saved at: ", saved_at)
+        if not os.path.isfile(file):
             # extract vocals from downloaded song
             self.vocal_remover.remove_vocals(path)
         # play song if its instrumental can be found
-        show_lyrics(self.Song.lyrics,self.root)
-        print("lyrics")
         if not self.music_player:
-            print("no music player")
             self.music_player = MusicPlayer(self.root)
-        if not self.music_player.root.state == "normal": #check if music player is active
-            print("not active")
-            self.music_player = MusicPlayer(self.root)
+        #elif not self.music_player.root.state == "active": #check if music player is active
+        #    self.music_player = MusicPlayer(self.root)
             
         self.music_player.append_song(file)
-        print("appended song to music player: ",file)
-            
-            
-            
+        show_lyrics(self.Song.lyrics,Toplevel(self.root))
         
     def download_song(self):
         """downloads song if it is not in file"""
         if self.Song is not None:
             saving_name = self.download_cls.download_song(self.Song)
-            print("saved at: ",saving_name,"now extracting vocals")
-            
-            self.vocal_remover.remove_vocals(saving_name)
+            return saving_name
 
     def search_song_local(self):
         song_str = self.search_field.get()
         max_match_ind = -1
         max_match_val = 0
+        
+        if self.Songs == [] or self.Songs is None:
+            return
         
         for ind,song in enumerate(self.Songs):
             current_match_val = 0
@@ -111,21 +107,20 @@ class Interface:
                         current_match_val += 1
             if current_match_val > max_match_val:
                 max_match_ind = ind
-        if self.Songs[max_match_ind].song_name in self.display_songs.get(0,"end"):
-            print("song name ",self.Songs[max_match_ind].song_name)
-            self.display_songs.delete(self.display_songs.get(0,"end").index(self.Songs[max_match_ind].song_name))
-        self.display_songs.insert(0, self.create_song_name(self.Songs[max_match_ind]))
+        
+        song_name = self.create_song_name(self.Songs[max_match_ind])
+        if song_name in self.display_songs.get(0,"end"):
+            self.display_songs.delete(self.display_songs.get(0,"end").index(song_name))
+        if max_match_ind != -1:
+            self.display_songs.insert(0, song_name)
         
                      
     def search_song_spotify(self):
         """search song in spotify, check if locally available"""
         song = self.search_field.get()
-        
         ans = self.search_cls.from_search_term(query=song)
-        
         if not ans.file_path and not ans.song_name: 
             raise ValueError("Could not find song")
-        
         self.Song = ans
         self.Songs.append(ans)
         
@@ -133,7 +128,6 @@ class Interface:
         if ans.song_name in list(self.display_songs.keys()):
             # already downloaded
             self.display_songs.delete(self.display_songs.get(0,"end").index(ans.song_name))
-            
         # insert as first element
         self.display_songs.insert(0, ans.song_name)
 
@@ -151,9 +145,10 @@ class Interface:
         self.display_songs = Listbox(self.root, width=80, fg='blue',
                             font=('Arial',16,'bold'))
         self.display_songs.bind('<<ListboxSelect>>',self.select_song_by_cursor)
-        
-        for ind, song in enumerate(songs):
+        if songs == []:
+            self.display_songs.grid(column = 0,row=3)
             
+        for ind, song in enumerate(songs):
             self.display_songs.grid(column = 0,row=1+ind)
             self.display_songs.insert(END, self.create_song_name(song))
             
