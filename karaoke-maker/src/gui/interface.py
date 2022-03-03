@@ -1,7 +1,6 @@
 import os
 import pickle
-from tkinter import *
-from typing import Optional
+from tkinter import Button,Entry,StringVar,Toplevel,END,Listbox,Tk
 from ..song import Song
 from src.gui.music_player import MusicPlayer
 from src.gui.lyrics_window import show_lyrics
