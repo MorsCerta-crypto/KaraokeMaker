@@ -4,7 +4,6 @@ from src.download.downloader import Downloader
 from src.vocalremover.vocalremover import VocalRemover
 from src.lyrics.lyrics import SongLyrics
 from src.gui.interface import main
-from src.gui.music_player import MusicPlayer
 
 CONFIG = {
     "song_format": "mp3",
