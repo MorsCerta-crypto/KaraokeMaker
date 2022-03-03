@@ -1,8 +1,5 @@
-import os
-from pathlib import Path
 from typing import Optional
 from lyricsgenius import Genius
-from ..song import Song
 
 class SongLyrics:
     def __init__(self):
