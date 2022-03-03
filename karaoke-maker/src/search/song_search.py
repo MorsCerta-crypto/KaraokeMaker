@@ -7,7 +7,7 @@ from . import yt_search
 
 
 class Search:
-    def __init__(self, output_format="mp3", songs_path: str = "/data/songs/"):
+    def __init__(self, output_format="mp3", songs_path: str = "karaoke-maker/data/downloads/"):
         self.spotify_client = Spotify(
             client_credentials_manager=SpotifyClientCredentials()
         )
