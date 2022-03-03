@@ -4,15 +4,21 @@ from tkinter import Button,Entry,StringVar,Toplevel,END,Listbox,Tk
 from ..song import Song
 from src.gui.music_player import MusicPlayer
 from src.gui.lyrics_window import show_lyrics
+
+from src.search.song_search import Search
+from src.download.downloader import Downloader
+
+from src.vocalremover.vocalremover import VocalRemover
+from src.lyrics.lyrics import SongLyrics
   
 class Interface:
-    def __init__(self,root,search_cls,download_cls,lyrics_cls,vocal_remover,downloads_path = "karaoke-maker/data/downloads/downloads.txt"):
+    def __init__(self,root, config):
         
-        self.downloads_path = downloads_path
-        self.search_cls = search_cls()
-        self.download_cls = download_cls()
-        self.lyrics_cls = lyrics_cls()
-        self.vocal_remover = vocal_remover()
+        self.downloads_path = config["downloads_path"]
+        self.search_cls = Search(config)
+        self.download_cls = Downloader(config)
+        self.lyrics_cls = SongLyrics()
+        self.vocal_remover = VocalRemover(config)
         
         self.root = root
         self.root.title("Select a Song")
@@ -152,7 +158,7 @@ class Interface:
             self.display_songs.insert(END, self.create_song_name(song))
             
 
-def main(search,downloader,lyrics,vocal_remover):
+def run_gui(config):
     root = Tk()
-    Interface(root,search,downloader,lyrics,vocal_remover)
+    Interface(root,config)
     root.mainloop()

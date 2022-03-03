@@ -4,40 +4,31 @@ import librosa
 import numpy as np
 import soundfile as sf
 import torch
-
+import tqdm
 from src.vocalremover import nets, utils
 
 
 class VocalRemover:
-    def __init__(
-        self,
-        batchsize: int = 4,
-        cropsize: int = 256,
-        postprocess: bool = False,
-        tta: bool = False,
-        hop_length: int = 1024,
-        n_fft: int = 2048,
-        pretrained_model: str = "karaoke-maker/data/models/baseline.pth",
-        sample_rate=44100,
-        export_folder="karaoke-maker/data",
-    ):
+    def __init__(self,config:dict):
         device = torch.device("cpu")
-        self.model = nets.CascadedNet(n_fft)  # type:ignore
-        self.model.load_state_dict(torch.load(pretrained_model, map_location=device))
+        self.model = nets.CascadedNet(config["n_fft"])  # type:ignore
+        self.model.load_state_dict(torch.load(config["pretrained_model"], map_location=device))
         if torch.cuda.is_available():  # type:ignore
             device = torch.device("cuda:0")
             self.model.to(device)
 
         self.offset = self.model.offset
         self.device = device
-        self.batchsize = batchsize
-        self.cropsize = cropsize
-        self.postprocess = postprocess
-
-        self.hop_length = hop_length
-        self.n_fft = n_fft
-        self.tta = tta
-        self.sample_rate = sample_rate
+        
+        self.batchsize = config["batchsize"]
+        self.cropsize = config["cropsize"]
+        self.postprocess = config["postprocess"]
+        self.hop_length = config["hop_length"]
+        self.n_fft = config["n_fft"]
+        self.tta = config["tta"]
+        self.sample_rate = config["sample_rate"]
+        export_folder = config["export_folder"]
+                                  
         if not export_folder.endswith("/"):
             export_folder = export_folder + "/"
         self.instrumentals_folder = export_folder + "backing_tracks/"
@@ -93,7 +84,7 @@ class VocalRemover:
         with torch.no_grad():
             mask = []
             # To reduce the overhead, dataloader is not used.
-            for i in range(0, patches, self.batchsize):
+            for i in tqdm.tqdm(range(0, patches, self.batchsize)):
                 X_batch = X_dataset[i : i + self.batchsize]  # type:ignore
                 X_batch = torch.from_numpy(X_batch).to(self.device)
 

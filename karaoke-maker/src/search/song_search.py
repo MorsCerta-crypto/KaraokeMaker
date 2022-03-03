@@ -7,13 +7,13 @@ from . import yt_search
 
 
 class Search:
-    def __init__(self, output_format="mp3", songs_path: str = "karaoke-maker/data/downloads/"):
+    def __init__(self, config:dict):
         self.spotify_client = Spotify(
             client_credentials_manager=SpotifyClientCredentials()
         )
 
-        self.output_format = output_format
-        self.songs_path = songs_path
+        self.output_format = config["output_format"]
+        self.songs_path = config["songs_path"]
 
     def from_search_term(self, query: str) -> Optional[Song]:
         """tries to find a song on spotify with a given searchterm

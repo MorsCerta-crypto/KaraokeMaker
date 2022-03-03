@@ -8,14 +8,13 @@ from src.lyrics.lyrics import SongLyrics
 class Downloader:
     def __init__(
         self,
-        format: str = "mp3",
-        output_path: str = "karaoke-maker/data/downloads/",
-        ytdl_format: str = "bestaudio/best",
+        config:dict
     ):
-        self.format = format
-        self.output_path = output_path
-        self.ytdl_format = ytdl_format
-        self.downloaded_songs = DownloadedSongs(output_path)
+    
+        self.format = config["song_format"]
+        self.output_path = config["output_path"]
+        self.ytdl_format = config["ytdl_format"]
+        self.downloaded_songs = DownloadedSongs(self.output_path)
 
     def get_file_path(self, song_obj: Song, format: str, repeat=False) -> Path:
         """generates file Path object from artists and song name and appends the extension
