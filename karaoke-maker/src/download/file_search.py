@@ -74,13 +74,11 @@ class DownloadedSongs:
         
         available_songs = self.songs_in_folder()
         current_songs = self.read_songs_from_file()
-        len_start = len(current_songs)
         if current_songs:
             current_songs.append(song)
         else: current_songs = [song]
         for index,song in enumerate(current_songs):
             if song.file_path in available_songs:
                 current_songs.remove(index)
-        print("deleted :", len(current_songs)-len_start)
         with open(self.songs_path, "wb") as fp:
             pickle.dump(current_songs, fp)
