@@ -36,9 +36,7 @@ class Downloader:
                 elif artist.lower() is song_obj.contributing_artists[0].lower():
                     unique_artists.append(artist)
 
-        converted_file_name = Song.create_file_name(
-            song_obj.song_name, unique_artists, format
-        )
+        converted_file_name = song_obj.create_file_name()
 
         file_path = Path(converted_file_name)
         try:
@@ -100,7 +98,6 @@ class Downloader:
                 url=song_object.youtube_link, download=True
             )
             if video_info:
-                print(video_info)
                 success = True
         except Exception as e:
             print("download failed ", e)
