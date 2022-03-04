@@ -43,8 +43,9 @@ class Interface(Tk):
         self.use_complete_song = False
         
     def load_songs_from_file(self)-> list[Song]:
-        if not os.path.exists(self.downloads_path):
-            os.makedirs(self.downloads_path)
+        if not os.path.isfile(self.downloads_path):
+            with open(self.downloads_path,"wb+") as f:
+                pickle.dump(None,f)
         if os.path.getsize(self.downloads_path) > 0:     
             with open(self.downloads_path,"rb") as f:
                 unpickler = pickle.Unpickler(f)
@@ -67,7 +68,6 @@ class Interface(Tk):
         #find a match in all songs
         match_song = None
         for song in self.Songs:
-            print("\nmatch?:song_name== name, displayname==name ",song.song_name, name, song.song_name==name, song.display_name==name)
             if song.display_name == name or song.song_name == name:
                 match_song = song
                 break
@@ -87,7 +87,6 @@ class Interface(Tk):
             #download song if it does not exist
             self.display_songs.itemconfig(index, {'bg':'yellow'})
             saved_at = self.download_song()
-            print("downloaded song saved at: ", saved_at)
             
         basename = os.path.splitext(os.path.basename(path))[0]
         file = f"karaoke-maker/data/backing_tracks/{basename}_Instruments.wav"
@@ -98,8 +97,6 @@ class Interface(Tk):
         # play song if its instrumental can be found
         if not self.music_player:
             self.music_player = MusicPlayer(self)
-        #elif not self.music_player.root.state == "active": #check if music player is active
-        #    self.music_player = MusicPlayer(self.root)
         if self.use_complete_song:
             file = path    
         self.music_player.append_song(file)
@@ -157,6 +154,8 @@ class Interface(Tk):
         if not ans.file_path and not ans.song_name: 
             raise ValueError("Could not find song path or name")
         self.Song = ans
+        if not self.Songs:
+            self.Songs = []
         self.Songs.append(ans)
         
         #show results
