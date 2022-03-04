@@ -2,7 +2,7 @@ from tkinter import (StringVar,Toplevel,LabelFrame,Label,
                      Button,Scrollbar,Listbox,VERTICAL,RIGHT,
                      Tk,BOTH,END,ACTIVE,SINGLE,GROOVE,Y)
 import pygame
-from pydub import AudioSegment
+
 
 class MusicPlayer(Toplevel):
     
