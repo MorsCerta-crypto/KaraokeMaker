@@ -5,12 +5,14 @@
 # Project
 
 this is ment to be an app to use several other libraries for a convenient use.
-Projects this repo uses code from are: spotdl(<https://github.com/spotDL/>) and vocalremover(<https://github.com/tsurumeso/vocal-remover>)
+Similar projects are:
+ spotdl(<https://github.com/spotDL/>)
+ vocalremover(<https://github.com/tsurumeso/vocal-remover>)
 
 # start
 
-1. log in on <https://developer.spotify.com/dashboard/> to get your client id and secret
-make them environment variables to use this app
+1. Log in on <https://developer.spotify.com/dashboard/> to get your client id and secret
+make them environment variables to use this app. Then go to genius' website <https://genius.com/api-clients> to log in and generate your client access token. Export it as well.
 
 2. Create a virtual environment to install the required dependencies from requirements.txt. "pip install -r requirements.txt"
 
