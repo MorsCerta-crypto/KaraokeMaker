@@ -46,7 +46,6 @@ class Search:
 
         Args:
             spotify_url (str): url of a song on spotify
-            output_format (str, optional): fileending to search for. Defaults to "mp3".
 
         Raises:
             ValueError: no metadata was found for this song
@@ -65,25 +64,6 @@ class Search:
         isrc = raw_track_meta.get("external_ids", {}).get("isrc")
         duration = round(raw_track_meta["duration_ms"] / 1000, ndigits=3)
         contributing_artists = [artist["name"] for artist in raw_track_meta["artists"]]
-
-        # Create file name
-        converted_file_name = Song.create_file_name(
-            song_name, [artist["name"] for artist in raw_track_meta["artists"]]
-        )
-
-        # If song name is too long remove artists
-        if len(converted_file_name) > 250:
-            converted_file_name = Song.create_file_name(song_name, [""])
-
-        converted_file_path = Path(
-            self.songs_path, f"{converted_file_name}.{self.output_format}"
-        )
-
-        # if a song is already downloaded skip it
-        if converted_file_path.is_file():
-            print("this file was already downloaded")
-            raise OSError(f"{converted_file_name} already downloaded")
-
         youtube_link = yt_search.search_song(
             song_name, contributing_artists, duration, isrc
         )
@@ -91,11 +71,21 @@ class Search:
         # Check if we found youtube url
         if youtube_link is None:
             raise LookupError("no youtube url was found")
-
         lyrics = ""
-        # lyrics = lyrics.get_lyrics(song_name, contributing_artists)
-
-        return Song(raw_track_meta, youtube_link, lyrics, converted_file_path, song_name)
+        song_obj = Song(raw_track_meta=raw_track_meta, 
+                        youtube_link=youtube_link, 
+                        lyrics=lyrics,
+                        song_name=song_name, 
+                        format=self.output_format)
+        # Create file name
+        song_obj.create_file_name()
+        # If song name is too long remove artists
+        if len(str(song_obj.file_path)) > 250:
+            song_obj.create_file_name(short=True)
+        # if a song is already downloaded skip it
+        if song_obj.file_path.is_file():
+            raise OSError(f"file already downloaded")
+        return song_obj
 
     def get_metadata_from_url(self, spotify_url: str):
 
