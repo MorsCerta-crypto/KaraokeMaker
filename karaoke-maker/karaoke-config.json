@@ -1,9 +1,9 @@
 {
-    "song_format": "mp3",
+    "song_format": "wav",
     "output_path": "karaoke-maker/data/downloads/",
     "ytdl_format": "bestaudio/best",
     "downloads_path": "karaoke-maker/data/downloads/downloads.txt",
-    "output_format": "mp3",
+    "output_format": "wav",
     "songs_path": "karaoke-maker/data/downloads",
     "batchsize": 4,
     "cropsize": 256,
