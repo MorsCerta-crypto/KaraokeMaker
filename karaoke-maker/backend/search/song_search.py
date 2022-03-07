@@ -12,7 +12,7 @@ class Search:
             client_credentials_manager=SpotifyClientCredentials()
         )
 
-        self.output_format = config["output_format"]
+        self.output_format = config["song_format"]
         self.songs_path = config["songs_path"]
 
     def from_search_term(self, query: str) -> Optional[Song]:
@@ -27,7 +27,7 @@ class Search:
         Returns:
             list[Song]: found songs
         """
-
+        
         # matches from spotify
         result = self.spotify_client.search(query, type="track")
 
@@ -61,7 +61,7 @@ class Search:
             raise ValueError("Couldn't get metadata from url")
 
         song_name = raw_track_meta["name"]
-        isrc = raw_track_meta.get("external_ids", {}).get("isrc")
+        isrc = raw_track_meta.get("external_ids", {}).get("isrc",None)
         duration = round(raw_track_meta["duration_ms"] / 1000, ndigits=3)
         contributing_artists = [artist["name"] for artist in raw_track_meta["artists"]]
         youtube_link = yt_search.search_song(
@@ -90,7 +90,7 @@ class Search:
             raise OSError(f"file already downloaded")
         return song_obj
 
-    def get_metadata_from_url(self, spotify_url: str):
+    def get_metadata_from_url(self, spotify_url: str)->Optional[dict]:
 
         if "open.spotify.com" not in spotify_url or "track" not in spotify_url:
             raise Exception(f"passed URL is not that of a track: {spotify_url}")
@@ -100,7 +100,7 @@ class Search:
 
 
 if __name__ == "__main__":
-    config= {"output_format":"wav","song_path":"karaoke-maker/data/downloads"}
+    config= {"song_format":"wav","song_path":"karaoke-maker/data/downloads"}
     s = Search(config)
     ans = s.from_search_term("ballad of hollywood jack and the rage cage")
     print(ans)
