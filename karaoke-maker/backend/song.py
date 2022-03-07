@@ -36,6 +36,11 @@ class Song:
     def create_file_name(self,base:str="karaoke-maker/data/downloads/") -> str:
         """creates a filename for the song object"""
         
+        if not isinstance(base,str):
+            raise ValueError("base has to be of type sting")
+        base_path = Path(base)
+        base_path.mkdir(parents=True,exist_ok=True)
+        
         artists = self.contributing_artists
            
         artist_string = artists[0]
@@ -48,8 +53,9 @@ class Song:
             self.format = "wav"
         converted_file_name = f"{base}{artist_string}-{song_name}.{self.format}"
         total_length = len(converted_file_name)
-        if total_length > 255:
-            cut_off = total_length - 255
+        if total_length > 100:
+            #determine overlap
+            cut_off = total_length - 100
             main_artist = artists[0]
             if len(artist_string)-len(main_artist)>=cut_off:
                 converted_file_name = f"{base}{main_artist}-{song_name}.{self.format}"
