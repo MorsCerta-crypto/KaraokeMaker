@@ -5,7 +5,7 @@ from rapidfuzz import fuzz
 
 
 def search_song(
-    song_name: str, song_artists: list[str], song_duration: int, isrc: str
+    song_name: str, song_artists: list[str], song_duration: int, isrc: Optional[str]
 ) -> Optional[str]:
 
     # if isrc is not None then we try to find song with it
