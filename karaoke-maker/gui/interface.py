@@ -1,15 +1,8 @@
 import os
 import pickle
 from tkinter import Button,Entry,StringVar,Toplevel,END,Listbox,Tk, Scrollbar,N,S,W,E,SINGLE,VERTICAL
-from backend.song import Song
-from gui.music_player import MusicPlayer
-from gui.lyrics_window import show_lyrics
-
-from backend.search.song_search import Search
-from backend.downloader import Downloader
-
-from backend.vocalremover.vocalremover import VocalRemover
-from backend.lyrics import SongLyrics
+from gui import MusicPlayer, show_lyrics
+from backend import Search,Downloader, VocalRemover, SongLyrics, Song
 from pathlib import Path
   
 class Interface(Tk):

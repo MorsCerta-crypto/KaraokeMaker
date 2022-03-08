@@ -1,9 +1,7 @@
 from typing import Optional
-from backend.song import Song
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
-from backend.search import yt_search
-from backend.lyrics import SongLyrics
+from backend import yt_search,Song,SongLyrics
 
 
 class Search:

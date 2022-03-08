@@ -1,9 +1,8 @@
 from pathlib import Path
 from typing import Optional
 import youtube_dl
-from backend.song import Song
-from backend.search.file_search import DownloadedSongs
-from backend.lyrics import SongLyrics
+from backend import Song,DownloadedSongs,SongLyrics
+
 
 class Downloader:
     def __init__(

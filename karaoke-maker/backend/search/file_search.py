@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Optional, Union
 import pickle
-from backend.song import Song
+from backend import Song
 
 
 @dataclass
