@@ -1,5 +1,5 @@
 
-from gui.interface import run_gui
+from gui import run_gui
 import json
 
 
