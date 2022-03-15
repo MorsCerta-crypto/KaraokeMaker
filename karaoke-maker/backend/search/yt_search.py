@@ -1,7 +1,7 @@
 from typing import Optional
 from unidecode import unidecode
 from pytube import Search
-from rapidfuzz import fuzz
+from rapidfuzz import fuzz #type: ignore
 
 
 def search_song(
