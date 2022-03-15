@@ -1,7 +1,9 @@
 from pathlib import Path
 from typing import Optional
 import youtube_dl
-from backend import Song,DownloadedSongs,SongLyrics
+from .search import DownloadedSongs
+from .lyrics import SongLyrics
+from utils import Song
 
 
 class Downloader:
@@ -32,14 +34,12 @@ class Downloader:
         """
             
         saving_name = song_object.create_file_name(file_path)
-        
         saving_path = Path(saving_name)
-
+        
         # saving_path.parent.mkdir(parents=True, exist_ok=True)
         if saving_path.is_file():
-            return saving_name
-
-        if self.downloaded_songs.path_in_file(saving_name):
+            if not self.downloaded_songs.path_in_file(saving_path):
+                self.downloaded_songs.handle_download_success(song_object)
             return saving_name
 
         options = {
