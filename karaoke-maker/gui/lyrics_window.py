@@ -1,8 +1,8 @@
 from tkinter import Tk,StringVar,N,Label,mainloop
 
 def show_lyrics(lyrics,root): 
-
-    master = root#Toplevel(root) 
+    """creates a window to show the lyrics(str)"""
+    master = root
     master.title("Lyrics")
     master.geometry("700x1000") # left top
     master.configure(bg='light grey') 
