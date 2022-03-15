@@ -24,7 +24,7 @@ class Song:
     @property
     def display_name(self) -> str:
         """returns songs's display name"""
-        return str(", ".join(self.contributing_artists) + " - " + self.song_name)
+        return f"{self.contributing_artists[0]} - {self.song_name}"
 
     @property
     def file_path(self)->Path:
