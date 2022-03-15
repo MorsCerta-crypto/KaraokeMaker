@@ -6,11 +6,13 @@
     "songs_path": "karaoke-maker/data/downloads",
     "batchsize": 4,
     "cropsize": 256,
-    "postprocess": true,
-    "tta": true,
+    "postprocess": false,
+    "tta": false,
     "hop_length": 1024,
     "n_fft": 2048,
     "pretrained_model": "karaoke-maker/data/models/baseline.pth",
     "sample_rate": 44100,
-    "export_folder": "karaoke-maker/data"
+    "export_folder": "karaoke-maker/data",
+    "window_height": 600,
+    "window_width": 800
 }
