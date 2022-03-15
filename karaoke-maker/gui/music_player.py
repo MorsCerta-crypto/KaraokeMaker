@@ -3,6 +3,10 @@ from tkinter import (StringVar,Toplevel,LabelFrame,Label,
                      Tk,BOTH,END,ACTIVE,SINGLE,GROOVE,Y)
 import pygame
 
+PAUSED = "PAUSED"
+PLAYING = "PLAYING"
+STOPPED = "STOPPED"
+
 
 class MusicPlayer(Toplevel):
     
@@ -15,7 +19,7 @@ class MusicPlayer(Toplevel):
         pygame.mixer.init()
         self.track = StringVar()
         self.status = StringVar()
-
+        self.status.set(STOPPED)
         trackframe = LabelFrame(self,text="Song Track",font=("times new roman",15,"bold"),bg="Navyblue",fg="white",bd=5,relief=GROOVE)
         trackframe.place(x=0,y=0,width=600,height=100)
         Label(trackframe,textvariable=self.track,width=40,font=("times new roman",18,"bold"),bg="Orange",fg="gold").grid(row=0,column=0,padx=10,pady=5)
@@ -38,11 +42,20 @@ class MusicPlayer(Toplevel):
         
     
     def nextsong(self):
-        active =  self.playlist.get(ACTIVE)
+        active = self.playlist.get(ACTIVE)
+        if active is None:
+            self.stopsong()
+            
         current_song_index = self.playlist.get(0,END).index(active)
         self.playlist.delete(current_song_index)
         self.playlist.activate(current_song_index-1)
-        self.playsong()
+        print("next song:", self.playlist.get(current_song_index-1))
+        if self.playlist.get(current_song_index-1) is None:
+            self.stopsong()
+            self.playlist.delete(current_song_index)
+            
+        else: 
+            self.playsong()
         
     def append_song(self,track):
         self.playlist.insert(END,track)
@@ -50,25 +63,25 @@ class MusicPlayer(Toplevel):
     def playsong(self):
         active_song = self.playlist.get(ACTIVE)
         if not active_song:
-            raise ValueError("no song given")
+            return
         if active_song.endswith(".mp3"):
             print("mp3 could be skipped")
             #self.nextsong()
         self.track.set(active_song)
-        self.status.set("-Playing")
+        self.status.set(PLAYING)
         pygame.mixer.music.load(active_song)
         pygame.mixer.music.play()
         
     def stopsong(self):
-        self.status.set("-Stopped")
+        self.status.set(STOPPED)
         pygame.mixer.music.stop()
     
     def pausesong(self):
-        self.status.set("-Paused")
+        self.status.set(PAUSED)
         pygame.mixer.music.pause()
     
     def unpausesong(self):
-        self.status.set("-Playing")
+        self.status.set(PLAYING)
         pygame.mixer.music.unpause()
         
     def on_closing(self):
