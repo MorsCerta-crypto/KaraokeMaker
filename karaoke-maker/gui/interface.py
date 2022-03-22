@@ -1,90 +1,119 @@
 import os
 import pickle
-from tkinter import Button, Label, Frame,Entry,StringVar,Toplevel,END,Listbox,Tk, Scrollbar,N,S,W,E,SINGLE,VERTICAL
+import tkinter as tk
+from tkinter.messagebox import showerror, showinfo
+from tkinter import ttk
 from .music_player import MusicPlayer
-from .lyrics_window import show_lyrics
+from .lyrics_window import LyricsWindow
 from backend import Search, Downloader, VocalRemover, SongLyrics
 from utils import Song
 from pathlib import Path
 from backend import DownloadedSongs
   
-class Interface(Tk):
+class Interface(tk.Tk):
     def __init__(self, config):
         super().__init__()
         self.downloads_path = Path(config["downloads_path"])
         self.export_folder = Path(config["export_folder"])
         #make directory if it does not exist
-        self.downloads_path.parent.mkdir(parents=True, exist_ok=True)
+        if not self.downloads_path.exists():
+            self.downloads_path.parent.mkdir(parents=True, exist_ok=True)
+            
         self.search_cls = Search(config)
         self.download_cls = Downloader(config)
         self.lyrics_cls = SongLyrics()
         self.vocal_remover = VocalRemover(config)
         self.file_search = DownloadedSongs(config["downloads_path"])
-        self.root_height = int(config["window_height"])
-        self.root_width = int(config["window_width"])
-        print(f"root gets size {self.root_height}x{self.root_width}")
-        self.title("Select a Song")
-        self.geometry(f"{self.root_width}x{self.root_height}+722+310")
+        
+        #configure window size
+        self.root_height = int(config["root_height"])
+        self.root_width = int(config["root_width"])
+
+        self.title("KaraokeMaker")
+        self.geometry(f"{self.root_width}x{self.root_height}+0+0")
+        self.state = False
+        self.attributes("-fullscreen",False)
+        self.bind("<F11>", self.toggle_fullscreen)
+        self.bind("<Escape>", self.end_fullscreen)
+        
         self.configure(bg='light grey')
+        self.resizable(True, True)
+        self.grid_columnconfigure(0,weight=1)
+        self.grid_columnconfigure(1,weight=1)
+        self.grid_columnconfigure(2,weight=1)
+        self.grid_rowconfigure(1,weight=1)
+        self.grid_rowconfigure(2,weight=1)#
+        self.style = ttk.Style()
+        #self.style.configure()
         
         self.make_search_interface()
+        self.make_music_player()
+        self.make_lyrics_window()
         
+        # initialize necessairy variables
         self.Songs = self.load_songs_from_file()
         self.show_songs(self.Songs)
-        self.music_player = None
         self.Song = None
         self.display_sons = None
         self.use_complete_song = False
-    
-    def make_search_interface(self):
-        searchinterface_height=int(self.root_height/30)
-        searchinterface_width = int(self.root_width/8)
-        searchinterface = Frame(self,height=searchinterface_height, width=searchinterface_width)
-        print(f"searchengine size: {searchinterface_height}x{searchinterface_width}")
-        #search buttons
-        self.search_spot_commit = Button(searchinterface,
-                                         text="Search on Spotify",
-                                         width=int(searchinterface_width/4),
-                                         height=int(searchinterface_height/4),
-                                         fg = 'black',
-                                         font=('Arial',16,'bold'),
-                                         background='blue',
-                                         activeforeground='green',
-                                         borderwidth="2",
-                                         relief="groove",
-                                         command=self.search_song_spotify)
-        self.search_loc_commit = Button(searchinterface,
-                                        text = "Search Local",
-                                        height=int(searchinterface_height/4),
-                                        width=int(searchinterface_width/4),
-                                        fg = 'black',font=('Arial',16,'bold'),
-                                        background = 'blue',
-                                        activeforeground='green',
-                                        borderwidth="2", 
-                                        relief="groove",
-                                        command=self.search_song_local)
+        
+    def make_music_player(self):
+        self.music_player = MusicPlayer(self)
+        self.music_player.grid(column=0,row=2,sticky=tk.NSEW)
+        #configure frame
+        self.music_player.grid_columnconfigure(index=0,weight=1,minsize=200)
+        self.music_player.grid_rowconfigure(index=0,weight=1,minsize=100)
+        
+        
+    def make_lyrics_window(self):
+        self.lyrics_window = LyricsWindow(self)
+        self.lyrics_window.grid(rowspan=3, row=0, column=1, sticky=tk.NSEW)
+        #configure frame
+        self.lyrics_window.grid_columnconfigure(index=1,weight=1,minsize=200)
+        self.lyrics_window.grid_rowconfigure(index=0,weight=1,minsize=150)
+        self.lyrics_window.grid_rowconfigure(index=1,weight=1,minsize=150)
+        self.lyrics_window.grid_rowconfigure(index=2,weight=1,minsize=150)
 
-        self.search_spot_commit.grid(column=1,row=0,sticky=W+E)
-        self.search_loc_commit.grid(column=1,row=1,sticky=W+E)
+        
+    def set_lyrics(self,text:str):
+        self.lyrics_window.set_lyrics(text)
+        
+    def make_search_interface(self):
+        """create the interface for searching song"""
+        
+        searchinterface = ttk.Frame(self,padding=10)
+        
+        # create search buttons
+        self.search_spot_commit = ttk.Button(searchinterface,
+                                         text="Search on Spotify",
+                                         command=self.search_song_spotify,
+                                         width=20)
+        
+        self.search_loc_commit = ttk.Button(searchinterface,
+                                        text = "Search Local",
+                                        command=self.search_song_local,
+                                        width=20)
+
+        self.search_spot_commit.grid(column=1,row=1,sticky=tk.EW)
+        self.search_loc_commit.grid(column=1,row=2,sticky=tk.EW)
         
         #input field
-        label = Label(searchinterface,
+        label = ttk.Label(searchinterface,
                       text = "Enter your search term: ",
-                      font=('Arial',16,'bold'),
-                      height=int(searchinterface_height/4),
-                      width=int(searchinterface_width/2))
-        label.grid(column=0,row=0,sticky=W+E)
+                      font=('Arial',16,'bold'))
+        label.grid(column=0,row=0,sticky=tk.NSEW)
         
-        text = StringVar()
-        self.search_field = Entry(searchinterface,
+        text = tk.StringVar()
+        self.search_field = ttk.Entry(searchinterface,
+                                      width=70,
                                   font=('Arial',16,'bold'), 
-                                  width=int(searchinterface_width/2),
-                                  textvariable=text, 
-                                  borderwidth="2", 
-                                  relief="groove")
-        self.search_field.grid(column=0,row=1,sticky=W+N)
+                                  textvariable=text)
+        self.search_field.grid(column=0,row=1,sticky=tk.NSEW)
         
-        searchinterface.grid(column=0,row=0,sticky=N+E+W,padx=1,pady=1)
+        searchinterface.grid(column=0,row=0,sticky=tk.NSEW)
+        #configure frame
+        searchinterface.grid_columnconfigure(index=0,weight=1,minsize=30)
+        searchinterface.grid_rowconfigure(index=1,weight=1,minsize=10)
     
     def load_songs_from_file(self) -> list[Song]:
         """load the saved song objects from file"""
@@ -102,65 +131,57 @@ class Interface(Tk):
             print("empty file")
             return []
         except ModuleNotFoundError:
-            print("deleting downloadsfile because pickling failed file")
+            print("TODO: deleting downloadsfile because pickling failed file")
             #self.downloads_path.unlink()
+            showerror("File where downloads should be listed was not found")
             return []
 
             
-    def select_song_by_cursor(self,event):
+    def select_song_by_cursor(self):
         """select a song by cursor"""
-        index = self.display_songs.curselection()
-        
-        if isinstance(index,tuple) and index != ():
-            index = index[0]
-        else: return
-        #color the selected element
-        self.display_songs.itemconfig(index, {'bg':'green'})
-        name = self.display_songs.get(index)
+        #index = self.display_songs.curselection()
+        current_item = self.display_songs.focus()
+        name,artist = self.display_songs.item(current_item)["values"]
         
         #find a match in all songs
-        match_song = None
         for song in self.Songs:
-            if song.display_name == name:
-                match_song = song
-                break
+            if song.song_name == name:
+                if song.contributing_artists[0]==artist:
+                    self.Song = song
+                    break
         
-        if match_song is None:
-            print("no match found")
+        if self.Song is None:
+            showerror("Song is not in downloadsfile")
             return
         
-        #set self.Song to the currently selected song
-        self.Song = match_song
         path = str(self.Song.file_path)
         if path == []:
             #self.display_songs.itemconfig(index, {'activeforeground':'red'})
-            raise ValueError(f"stored no path for this song: {name}")
+            showerror(f"stored no path for this song: {name}")
+            return        
         
         saved_at = self.download_song()
         # check is filepath for audio file exists
-        if not os.path.isfile(path) or not os.path.isfile(path.replace(".mp3",".wav")):
-            #download song if it does not exist
-            self.display_songs.itemconfig(index, {'acitveforeground':'green'})
-            
-            assert saved_at == path
+        #download song if it does not exist
+        #self.display_songs.itemconfig(index, {'acitveforeground':'green'})
+           
             
         basename = os.path.splitext(os.path.basename(path))[0]
         file = f"{self.export_folder}/backing_tracks/{basename}_Instruments.wav"
         # make sure karaoke version of song exists, else create
         if not os.path.isfile(file):
             # extract vocals from downloaded song
-            self.display_songs.itemconfig(index, {'bg':'orange'})
+            #self.display_songs.itemconfig(index, {'bg':'orange'})
             self.vocal_remover.remove_vocals(path)
             
         # play song if its instrumental can be found
-        if not self.music_player:
-            self.music_player = MusicPlayer(self)
         if self.use_complete_song:
             file = path    
+        
         self.music_player.append_song(file)
         #self.display_songs.itemconfig(index, {'activeforeground':'black'})
         if self.Song.lyrics != None:
-            show_lyrics(self.Song.lyrics,Toplevel(self))
+            self.set_lyrics(self.Song.lyrics)
         
         
     def download_song(self):
@@ -171,22 +192,24 @@ class Interface(Tk):
         
     def add_song_to_playlist(self):
         if self.play_complete_song.config('relief')[-1] == 'sunken':
-            self.play_complete_song.config(relief="raised")
+            #self.play_complete_song.config(relief="raised")
             self.use_complete_song = False
-            self.play_complete_song.configure(foreground="red") 
+            #self.play_complete_song.configure(foreground="red") 
         else:
-            self.play_complete_song.config(relief="sunken")
+            #self.play_complete_song.config(relief="sunken")
             self.use_complete_song = True
-            self.play_complete_song.configure(foreground="green") 
+            #self.play_complete_song.configure(foreground="green") 
 
     def search_song_local(self):
         """local search in case no internet is available"""
+        
+        
         song_str = self.search_field.get()
         max_match_ind = -1
         max_match_val = 0
         
         if self.Songs == [] or self.Songs is None:
-            print("no songs found")
+            showinfo("no songs found locally")
             return
         
         for ind,song in enumerate(self.Songs):
@@ -199,22 +222,23 @@ class Interface(Tk):
             if current_match_val > max_match_val:
                 max_match_ind = ind
         if max_match_ind != -1:
-            song_name = self.Songs[max_match_ind].display_name
-            if song_name in self.display_songs.get(0,"end"):
-                self.display_songs.delete(self.display_songs.get(0,"end").index(song_name))
-            self.display_songs.insert(0, song_name)
+            current_item = self.display_songs.focus(self.Songs[max_match_ind].display_name)
+            self.display_songs.move(current_item,"",0)
+            
+        else: 
+            showerror("song not available locally")
         
                      
     def search_song_spotify(self):
         """search song in spotify, check if locally available"""
         song = self.search_field.get()
         if song == "" or song is None:
-            print("No input...") 
+            showinfo("can't search for nothing...")
             return
-        
         ans = self.search_cls.from_search_term(query=song)
+        print("spotify returned: ",type(ans))
         if ans is None:
-            print("No answer from search")
+            showerror("No answer from search on spotify, retry!")
             return
         if isinstance(ans,Path):
             self.Song = self.file_search.song_from_path(ans)
@@ -222,76 +246,79 @@ class Interface(Tk):
                 # add song to file
                 self.file_search.handle_download_success(self.Song)
             else: return
-            
         else: self.Song = ans
-        
-        
-        print("current song: ", self.Song.song_name)
         if self.Song is None:
-            print("song object not created")
+            showerror("song object could not created")
             return
             
         self.Songs.append(self.Song)
-        
         #show results
-        if self.Song.song_name in list(self.display_songs.keys()):
-            # already downloaded
-            self.display_songs.delete(self.display_songs.get(0,"end").index(self.Song.display_name))
-        # insert as first element
-        self.display_songs.insert(0, self.Song.display_name)
-
+        current_item=self.display_songs.item(self.Song.song_name)
+        print("selected :",type(current_item),current_item)
+        #move to first index
+        current_item = self.display_songs.focus(self.Song.display_name)
+        self.display_songs.move(current_item, '',0)
+        
 
     def show_songs(self,songs:list[Song]):
         """create a listbox for songs """
         if not songs:
             songs = []
         
-        palette_height = int(self.root_height/30)
-        palette_width = int(self.root_width/8)
-        song_palette = Frame(self,background='grey',height=palette_height, width=palette_width)
+        song_palette = ttk.Frame(self,padding=10)
+        
         
         # code for creating table where songs will be shown
-        self.display_songs = Listbox(song_palette, 
-                                     width=int(palette_width/2), 
-                                     height=palette_height, 
-                                     fg='blue',
-                                     font=('Arial',16,'bold'),
-                                     selectmode=SINGLE,
-                                     borderwidth="2", 
-                                     relief="groove")
+        columns=("song_name","artist")
+        self.display_songs = ttk.Treeview(song_palette, columns=columns, show='headings'
+                                     )
+        self.display_songs.heading('song_name', text='Song Name')
+        self.display_songs.heading('artist', text='Arist Name')
         
-        self.display_songs.bind('<<ListboxSelect>>',self.select_song_by_cursor)
-        self.display_songs.grid(column=0,row=0,sticky=N+S)
+        self.display_songs.grid(rowspan=3,column=0,sticky=tk.NSEW)
         
-        #add a scrollbar
-        scrollbar = Scrollbar(song_palette, 
-                              orient=VERTICAL,
-                              command=self.display_songs.yview,
-                              bg='black',
-                              width=10,
-                              borderwidth="2",
-                              relief="groove",
-                              activebackground='green')
-        scrollbar.grid(sticky=N+S,column=1,row=0)
-        
-        self.display_songs.config(yscrollcommand=scrollbar.set)
         for song in songs:
-            self.display_songs.insert(END, song.display_name) 
+            self.display_songs.insert('',
+                                      tk.END, 
+                                      iid=song.display_name, 
+                                      values=(song.song_name,song.contributing_artists[0])) 
             
-        self.play_complete_song = Button(song_palette,
+        
+        # add a scrollbar
+        scrollbar = ttk.Scrollbar(song_palette, orient=tk.VERTICAL, command=self.display_songs.yview)
+        self.display_songs["yscrollcommand"]=scrollbar.set
+        scrollbar.grid(row=0, column=1, sticky='ns')
+        
+        #button for selecting a song
+        self.play_complete_song = ttk.Button(song_palette,
+                                        text = 'Play Selected Song',
+                                        command=self.select_song_by_cursor,
+                                        width=20)
+        self.play_complete_song.grid(column=2, row=0,sticky=tk.N)
+        
+        #button for playing complete song (with vocals)
+        self.play_complete_song = ttk.Button(song_palette,
                                         text = 'Play song with vocals',
-                                        fg = 'black',
-                                        width=int(palette_width/5)-2,
-                                        height=int(palette_height/30),
-                                        font=('Arial',16,'bold'), 
-                                        foreground='grey',
-                                        activeforeground='yellow',
-                                        borderwidth='2', 
-                                        relief='groove',
-                                        command=self.add_song_to_playlist)
-        self.play_complete_song.grid(column=2, row=0,sticky=N+E)
+                                        command=self.add_song_to_playlist,
+                                        width=20)
+        self.play_complete_song.grid(column=2, row=1,sticky=tk.N)
+        
+        # set songs in the second row of the first column of root window
+        song_palette.grid(column=0,row=1,sticky=tk.NSEW)
+        
+        # let only the box with songs grow when resized
+        song_palette.grid_columnconfigure(index=0,weight=1,minsize=20)
+        song_palette.grid_rowconfigure(index=2,weight=1,minsize=10)
+        
+    def toggle_fullscreen(self, event=None):
+        self.state = not self.state  # Just toggling the boolean
+        self.attributes("-fullscreen", self.state)
+        return "break"
 
-        song_palette.grid(column=0,row=1,sticky=N+S+E+W, padx=1,pady=1,ipadx=5,ipady=5)
+    def end_fullscreen(self, event=None):
+        self.state = False
+        self.attributes("-fullscreen", False)
+        return "break"
             
 
 def run_gui(config):
