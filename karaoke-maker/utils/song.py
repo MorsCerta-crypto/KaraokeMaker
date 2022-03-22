@@ -13,8 +13,8 @@ class Song:
 
     @property
     def duration(self) -> float:
-        """returns duration of song in seconds"""
-        return round(self.raw_track_meta["duration_ms"] / 1000, ndigits=3)
+        """returns duration of song in milliseconds"""
+        return round(self.raw_track_meta["duration_ms"], ndigits=3)
 
     @property
     def contributing_artists(self) -> list[str]:
