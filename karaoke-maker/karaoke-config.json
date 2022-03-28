@@ -13,6 +13,6 @@
     "pretrained_model": "karaoke-maker/data/models/baseline.pth",
     "sample_rate": 44100,
     "export_folder": "karaoke-maker/data",
-    "window_height": 600,
-    "window_width": 800
+    "root_height": 800,
+    "root_width": 1400
 }
