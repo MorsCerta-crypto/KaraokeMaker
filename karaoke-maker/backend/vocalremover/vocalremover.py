@@ -4,18 +4,21 @@ import numpy as np
 import soundfile as sf
 import torch
 import tqdm
+from threading import Thread
 from backend.vocalremover import nets, utils
 
 
-class VocalRemover:
-    def __init__(self,config:dict):
+class VocalRemover(Thread):
+    def __init__(self,config:dict,file:str):
+        super().__init__()
         device = torch.device("cpu")
-        self.model = nets.CascadedNet(config["n_fft"])  # type:ignore
+        self.model = nets.CascadedNet(int(config["n_fft"]))  # type:ignore
         self.model.load_state_dict(torch.load(config["pretrained_model"], map_location=device))
         if torch.cuda.is_available():  # type:ignore
             device = torch.device("cuda:0")
             self.model.to(device)
 
+        self.file = file
         self.offset = self.model.offset
         self.device = device
         
@@ -38,8 +41,11 @@ class VocalRemover:
             os.makedirs(self.instrumentals_folder)
         if not os.path.exists(self.vocals_folder):
             os.makedirs(self.vocals_folder)
+            
+    def run(self):
+        self.remove_vocals(self.file)
 
-    def remove_vocals(self, file: str):
+    def remove_vocals(self, file: str)->None:
         """remove_vocals from a given file"""  #
 
         if not file.split(".")[1] in ["mp3", "wav"]:
@@ -140,6 +146,3 @@ class VocalRemover:
         return y_spec, v_spec
 
 
-if __name__ == "__main__":
-    i = VocalRemover()
-    i.remove_vocals(file="")
