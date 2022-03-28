@@ -25,6 +25,7 @@ class DownloadedSongs:
             raise TypeError("parameter 'song' has to be of type 'Song'")
         
         if song is not None:
+            print("adding song to file : ", song.song_name)
             self.add_songs_to_file(song)
         else:
             print("song is none")
@@ -50,7 +51,10 @@ class DownloadedSongs:
         """returns a path if song name was found in file"""
         songs = self.read_songs_from_file()
         if not songs:
+            print("found no songs")
             return None
+        print(f"found {len(songs)} in file")
+        
         for song in songs:
             if name in song.song_name:
                 return song.file_path
@@ -60,7 +64,7 @@ class DownloadedSongs:
         if not self.songs_path.parent.is_dir():
             self.songs_path.parent.mkdir(parents=True, exist_ok=True)
         if not self.songs_path.is_file():
-            print("making file")
+            print(f"making file {self.songs_path}")
             open(self.songs_path,"wb").close()
         if os.path.getsize(self.songs_path) > 0:     
             with open(self.songs_path,"rb") as f:
@@ -68,6 +72,7 @@ class DownloadedSongs:
                 songs = unpickler.load()
                 if not isinstance(songs,list):
                     songs = [songs]
+                    print(f"found {len(songs)} songs")
                 return songs
         print("found empty file")
         return []
@@ -79,22 +84,41 @@ class DownloadedSongs:
         for file in path.iterdir():
             if file.suffix in [".mp3",".wav",".ogg"]:
                 songs.append(str(file))
+        
+        print(f"found {len(songs)} songs as mp3 files")
         return songs
     
     def song_from_path(self,path:Path)->Optional[Song]:
+        """compares a path to the paths of song-paths that are stored in the downloads file"""
         songs = self.read_songs_from_file()
-        print("found songs: ", songs)
         for song in songs:
-            print(song.file_path, "matches ",path)
             if song.file_path == path:
                 return song
-
+            
+    def remove_song_from_file(self,song:Song) -> None:
+        """removes a song obj from downloads file"""
+        
+        print("removing song from file: ", song.file_path)
+        available_paths:list[str] = self.songs_in_folder()
+        if song in available_paths:
+            print("removing ", song.file_path," from downloads")
+            song.file_path.unlink()
+        
+        current_songs:list[Song] = self.read_songs_from_file()
+        if song in current_songs:
+            current_songs.remove(song)
+            
+        with open(self.songs_path, "wb") as fp:
+            pickle.dump(current_songs, fp)
+        
+        
     def add_songs_to_file(self,song:Song) -> None:
         """if a song was searched add it  file, if downloading was a success, add it to the song list
 
         Args:
             song (Song): obj of the currently searched song
         """
+        print("adding song to file: ", song.file_path)
         if not isinstance(song,Song):
             print("wrong type of song")
             raise TypeError("'song' argument must be of type 'Song'")
@@ -112,7 +136,6 @@ class DownloadedSongs:
         for song in current_songs:
             #dont add a song twice
             
-            print(available_paths)
             if song.file_path not in available_paths:
                 print("song not available: ", song.file_path)
                 #current_songs.remove(song)
@@ -120,10 +143,10 @@ class DownloadedSongs:
             
         if count > 0:
             print(f"Had to drop {count} songs, because they were not found in file {self.songs_path}") 
-         
-            
+        
+        names = ", ".join([song.song_name for song in current_songs])
+        print(f"writing {names} to file")
         with open(self.songs_path, "wb") as fp:
-            print("adding songs to file: ", current_songs)
             pickle.dump(current_songs, fp)
         
 
