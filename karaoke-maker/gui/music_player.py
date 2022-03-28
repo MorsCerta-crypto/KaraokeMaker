@@ -18,23 +18,25 @@ class MusicPlayer(ttk.Frame):
         self.status = tk.StringVar()
         self.status.set(STOPPED)
         self.resizable=(True,True)
+        self.songs: list[str] = list()
         #Frame for running track
         trackframe = ttk.Frame(self,relief=tk.GROOVE)
         trackframe.place(x=0,y=0,width=500,height=40)
         trackframe.pack(side=tk.RIGHT,fill=tk.BOTH,expand=1,padx=2,pady=2)
         ttk.Label(trackframe,
                   textvariable=self.track,
-                  width=20,
-                  font=("Arial",18)).grid(row=0,column=0,padx=5,pady=5)
+                  width=40,
+                  font=("Arial",14)).grid(row=0,column=0,columnspan=3,padx=5,pady=5)
+
         ttk.Label(trackframe,
                   textvariable=self.status,
-                  font=("Arial",15)).grid(row=0,column=1,padx=2,pady=2,sticky=tk.E)
+                  font=("Arial",12)).grid(row=1,column=0,columnspan=3,padx=5,pady=5,sticky=tk.NE)
         self.progressbar = ttk.Progressbar(trackframe,
                                            length=300,
                                            maximum=100,
                                            orient="horizontal",
                                            mode="determinate")
-        self.progressbar.grid(row=1,columnspan=2,padx=5,pady=5)
+        self.progressbar.grid(column = 0,row=2,columnspan=3,padx=10,pady=10)
 
         #frame for buttons
         buttonframe = ttk.Frame(self,relief=tk.GROOVE)
@@ -89,8 +91,10 @@ class MusicPlayer(ttk.Frame):
             self.stopsong()
             
         current_song_index = self.playlist.get(0,tk.END).index(active)
+        del self.songs[current_song_index]
         self.playlist.delete(current_song_index)
         self.playlist.activate(current_song_index-1)
+        
         if self.playlist.get(current_song_index-1) is None:
             self.stopsong()
             self.playlist.delete(current_song_index)
@@ -98,18 +102,24 @@ class MusicPlayer(ttk.Frame):
             self.playsong()
         
     def append_song(self,track):
-        self.playlist.insert(tk.END,track)
+        self.songs.append(track)
+        self.playlist.insert(tk.END,self.song_name_from_path(track))
 
+    def song_name_from_path(self,path:str):
+        #split of folder structure
+        return "".join(path.split("/")[3:])
+    
     def playsong(self):
+        """find the selected index and play corresponding song"""
+        selected_song = self.playlist.get(tk.ACTIVE)
+        current_song_index = self.playlist.get(0,tk.END).index(selected_song)
+        active_song=self.songs[current_song_index]
         
-        active_song = self.playlist.get(tk.ACTIVE)
         if not active_song:
             self.track.set("")
             return
-        if active_song.endswith(".mp3"):
-            print("mp3 could be skipped")
-            #self.nextsong()
-        self.track.set(active_song)
+        
+        self.track.set(selected_song)
         self.status.set(PLAYING)
         
         #save time of current song
