@@ -1,3 +1,4 @@
+import time
 import tkinter as tk 
 from tkinter import ttk
 import pygame
@@ -16,19 +17,20 @@ class MusicPlayer(ttk.Frame):
         self.track = tk.StringVar()
         self.status = tk.StringVar()
         self.status.set(STOPPED)
-        
+        self.resizable=(True,True)
         #Frame for running track
         trackframe = ttk.Frame(self,relief=tk.GROOVE)
-        trackframe.place(x=0,y=0,width=500,height=100)
+        trackframe.place(x=0,y=0,width=500,height=40)
+        trackframe.pack(side=tk.RIGHT,fill=tk.BOTH,expand=1,padx=2,pady=2)
         ttk.Label(trackframe,
                   textvariable=self.track,
                   width=20,
                   font=("Arial",18)).grid(row=0,column=0,padx=5,pady=5)
         ttk.Label(trackframe,
                   textvariable=self.status,
-                  font=("Arial",15)).grid(row=0,column=1,padx=5,pady=5)
+                  font=("Arial",15)).grid(row=0,column=1,padx=2,pady=2,sticky=tk.E)
         self.progressbar = ttk.Progressbar(trackframe,
-                                           length=150,
+                                           length=300,
                                            maximum=100,
                                            orient="horizontal",
                                            mode="determinate")
@@ -36,7 +38,8 @@ class MusicPlayer(ttk.Frame):
 
         #frame for buttons
         buttonframe = ttk.Frame(self,relief=tk.GROOVE)
-        buttonframe.place(x=0,y=100,width=500,height=200)
+        buttonframe.place(x=0,y=100,width=500,height=30)
+        buttonframe.pack(side=tk.TOP,fill=tk.X,expand=1,padx=2,pady=2)
         ttk.Button(buttonframe,
                    text="PLAYSONG",
                    command=self.playsong,
@@ -56,10 +59,13 @@ class MusicPlayer(ttk.Frame):
         
         #frame for Playlist
         songsframe = ttk.Frame(self,relief=tk.GROOVE)
-        songsframe.place(x=500,y=0,width=300,height=200)
+        songsframe.place(x=400,y=0,width=300,height=40)
+        songsframe.pack(side=tk.LEFT,fill=tk.BOTH,expand=1,padx=2,pady=2)
         scrol_y = tk.Scrollbar(songsframe,orient=tk.VERTICAL,relief=tk.GROOVE)
+        scrol_x = tk.Scrollbar(songsframe,orient=tk.HORIZONTAL,relief=tk.GROOVE)
         self.playlist = tk.Listbox(songsframe,
                                    yscrollcommand=scrol_y.set,
+                                   xscrollcommand=scrol_y.set,
                                    selectbackground="gold",
                                    selectmode=tk.SINGLE,
                                    font=("Arial",12),
@@ -69,8 +75,12 @@ class MusicPlayer(ttk.Frame):
                                    relief=tk.GROOVE)
         scrol_y.pack(side=tk.RIGHT,fill=tk.BOTH)
         scrol_y.config(command=self.playlist.yview)
+        scrol_x.pack(side=tk.BOTTOM,fill=tk.BOTH)
+        scrol_x.config(command=self.playlist.xview)
         self.playlist.pack(fill=tk.BOTH,side=tk.RIGHT,expand=1,padx=2,pady=2)
-        print("made music player")
+        
+        self.grid_columnconfigure(index=0,weight=1,minsize=100)
+        self.grid_columnconfigure(index=1,weight=1,minsize=100)
         
     
     def nextsong(self):
@@ -81,7 +91,6 @@ class MusicPlayer(ttk.Frame):
         current_song_index = self.playlist.get(0,tk.END).index(active)
         self.playlist.delete(current_song_index)
         self.playlist.activate(current_song_index-1)
-        print("next song:", self.playlist.get(current_song_index-1))
         if self.playlist.get(current_song_index-1) is None:
             self.stopsong()
             self.playlist.delete(current_song_index)
@@ -92,6 +101,7 @@ class MusicPlayer(ttk.Frame):
         self.playlist.insert(tk.END,track)
 
     def playsong(self):
+        
         active_song = self.playlist.get(tk.ACTIVE)
         if not active_song:
             self.track.set("")
@@ -104,11 +114,14 @@ class MusicPlayer(ttk.Frame):
         
         #save time of current song
         sound = pygame.mixer.Sound(active_song)
-        self.track_time = sound.get_length()
-        print("song is ", self.track_time, " ms long")
+        self.track_time = sound.get_length() 
+        
+        print("song is ", self.track_time, " s long")
         pygame.mixer.music.load(active_song)
+        self.start_time = time.time()
+        self.after(2300, self.update_progress)
         pygame.mixer.music.play()
-        self.after(100, self.update_progress)
+        
         
     def stopsong(self):
         self.status.set(STOPPED)
@@ -122,30 +135,15 @@ class MusicPlayer(ttk.Frame):
         if self.progressbar is None:
             print("progressbar is not available")
             return
-        pos_ms = pygame.mixer.music.get_pos()#self.music.current_position()
         
-        print(f"found pos: {pos_ms} and total ms: {self.track_time}")
-        if self.track_time != 0:
-            progress_percent = pos_ms / float(self.track_time) * 100
-            
-            # Update the progress bar
-            self.progressbar["value"] = progress_percent
-        else: 
-            print("value set to 0")
-            self.progressbar["value"] = 0
-        # Schedule next update in 100ms        
+        new_value = time.time() - self.start_time
+        progress_percent = (new_value / self.track_time) * 100
+        if progress_percent >= 98.0:
+            progress_percent = 100.0
         
+        # Update the progress bar
+        self.progressbar["value"] = int(progress_percent)
+        
+        self.after(2300, self.update_progress)
 
         
-
-
-        
-def main():
-    root = tk.Tk() # In order to create an empty window
-    # Passing Root to MusicPlayer Class
-    MusicPlayer(root)
-    root.mainloop()
-    
-
-if __name__ == "__main__":
-    main()
