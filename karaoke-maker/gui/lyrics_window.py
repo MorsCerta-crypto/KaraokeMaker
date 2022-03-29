@@ -1,4 +1,3 @@
-from tarfile import _Bz2ReadableFileobj
 import tkinter as tk# Tk,StringVar,N,Label,mainloop
 from tkinter import ttk
 
@@ -48,12 +47,9 @@ class LyricsWindow(ttk.Frame):
                 self.Lyrics.insert(tk.END,f" {line:20} ")
         
 
-    def _preprocess_text(self,text:str):
+    def _preprocess_text(self,text:str)->list[str]:
         """removes unwanted words from text"""
         
-        #reduce size
-        if len(text.split("\n"))>100:
-            text = "\n".join(text.split("\n")[:100])
         
         clean_text = []
         # check bad words
@@ -62,16 +58,16 @@ class LyricsWindow(ttk.Frame):
             for word in BAD_WORDS:
                 ind = line.lower().find(word)
                 if ind != -1:
-                    line = line.replace(line[ind:ind+len(word)],"\n",-1)
+                    line = line.replace(line[ind:ind+len(word)]," ",-1)
                 
             # devide line if it is too long
-            if len(line)>30:
-                for ind, char in enumerate(line[25:35]):
-                    if char == " ":
-                        line = line.replace(line[ind],"\n")
-                        break
-                        
-            clean_text.append(line)
+            if len(line)>60 and " " in line[45:60]:
+                ind = line[45:60].find(" ")
+                place = 45 + ind
+                clean_text.append(line[:place])
+                clean_text.append(" -> "+line[place:])
+            else:         
+                clean_text.append(line)
         return clean_text
         
         
