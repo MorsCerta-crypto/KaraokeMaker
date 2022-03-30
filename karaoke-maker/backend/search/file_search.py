@@ -72,7 +72,15 @@ class DownloadedSongs:
                 songs = unpickler.load()
                 if not isinstance(songs,list):
                     songs = [songs]
-                    print(f"found {len(songs)} songs")
+                print(f"found {len(songs)} songs")
+                # delete duplicates
+                another_songs_list = list()
+                for song in songs:
+                    if song in another_songs_list:
+                        print("found duplicate in file")
+                        self.remove_song_from_file(song,file=False,current_songs=songs)
+                    else:
+                        another_songs_list.append(song)
                 return songs
         print("found empty file")
         return []
@@ -95,16 +103,16 @@ class DownloadedSongs:
             if song.file_path == path:
                 return song
             
-    def remove_song_from_file(self,song:Song) -> None:
+    def remove_song_from_file(self,song:Song,file:bool=False,current_songs:Optional[list[Song]]=None) -> None:
         """removes a song obj from downloads file"""
         
         print("removing song from file: ", song.file_path)
         available_paths:list[str] = self.songs_in_folder()
-        if song in available_paths:
+        if song in available_paths and file:
             print("removing ", song.file_path," from downloads")
             song.file_path.unlink()
-        
-        current_songs:list[Song] = self.read_songs_from_file()
+        if not current_songs:
+            current_songs:list[Song] = self.read_songs_from_file()
         if song in current_songs:
             current_songs.remove(song)
             
@@ -133,13 +141,20 @@ class DownloadedSongs:
         else: current_songs.append(song)
         #add only available songs
         count = 0
+        duplicates = []
         for song in current_songs:
             #dont add a song twice
             
             if song.file_path not in available_paths:
-                print("song not available: ", song.file_path)
+                print("song not available: ", song.file_path," would remove it")
                 #current_songs.remove(song)
                 count += 1
+            else:
+                if song in duplicates:
+                    print("found duplicate")
+                    self.remove_song_from_file(song,file=False)
+                else:
+                    duplicates.append(song)
             
         if count > 0:
             print(f"Had to drop {count} songs, because they were not found in file {self.songs_path}") 
