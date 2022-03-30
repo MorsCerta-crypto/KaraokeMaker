@@ -34,7 +34,7 @@ class Search:
         result = self.spotify_client.search(query, type="track")
         # return first result link or if no matches are found, raise Exception
         if result is None or len(result.get("tracks", {}).get("items", [])) == 0:
-            raise Exception("No song matches found on Spotify")
+            raise ValueError("No song matches found on Spotify")
         
         song_url = "http://open.spotify.com/track/" + result["tracks"]["items"][0]["id"]
         
@@ -75,6 +75,7 @@ class Search:
             song_obj = self.try_recreate_song_obj(path)
             if song_obj is not None:
                 return song_obj
+            
             
 
         song_name = raw_track_meta["name"]
