@@ -43,7 +43,12 @@ class VocalRemover(Thread):
             os.makedirs(self.vocals_folder)
             
     def run(self):
-        self.remove_vocals(self.file)
+        #check if file exists
+        if not os.path.exists(self.file):
+            self.remove_vocals(self.file)
+        else: print("file already exists")
+        
+        
 
     def remove_vocals(self, file: str)->None:
         """remove_vocals from a given file"""  #
