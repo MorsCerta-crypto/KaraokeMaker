@@ -46,18 +46,15 @@ class MusicPlayer(ttk.Frame):
                    text="PLAYSONG",
                    command=self.playsong,
                    width=10).grid(row=0,column=0,padx=2,pady=2)
-        ttk.Button(buttonframe,
-                   text="PAUSE",
-                   command=self.pausesong,
-                   width=9).grid(row=0,column=1,padx=2,pady=2)
+
         ttk.Button(buttonframe,
                    text="STOPSONG",
                    command=self.stopsong,
-                   width=10).grid(row=0,column=2,padx=2,pady=2)
+                   width=10).grid(row=0,column=1,padx=2,pady=2)
         ttk.Button(buttonframe,
                    text="NEXT SONG",
                    command=self.nextsong,
-                   width=10).grid(row=0,column=3,padx=2,pady=2)
+                   width=10).grid(row=0,column=2,padx=2,pady=2)
         
         #frame for Playlist
         songsframe = ttk.Frame(self,relief=tk.GROOVE)
@@ -86,6 +83,9 @@ class MusicPlayer(ttk.Frame):
         
     
     def nextsong(self):
+        """loads next song in playlist"""
+        
+        
         active = self.playlist.get(tk.ACTIVE)
         if active is None:
             self.stopsong()
@@ -96,12 +96,14 @@ class MusicPlayer(ttk.Frame):
         self.playlist.activate(current_song_index-1)
         
         if self.playlist.get(current_song_index-1) is None:
+            print("next element is None")
             self.stopsong()
             self.playlist.delete(current_song_index)
         else: 
             self.playsong()
         
-    def append_song(self,track):
+    def append_song(self,track:str):
+        """adds a song to the playlist and to pathnames(self.songs)"""
         self.songs.append(track)
         self.playlist.insert(tk.END,self.song_name_from_path(track))
 
@@ -112,12 +114,13 @@ class MusicPlayer(ttk.Frame):
     def playsong(self):
         """find the selected index and play corresponding song"""
         selected_song = self.playlist.get(tk.ACTIVE)
-        current_song_index = self.playlist.get(0,tk.END).index(selected_song)
-        active_song=self.songs[current_song_index]
-        
-        if not active_song:
+        songs = self.playlist.get(0,tk.END)
+        if selected_song in songs:
+            current_song_index = songs.index(selected_song)
+        else: 
             self.track.set("")
             return
+        active_song=self.songs[current_song_index]        
         
         self.track.set(selected_song)
         self.status.set(PLAYING)
@@ -125,9 +128,10 @@ class MusicPlayer(ttk.Frame):
         #save time of current song
         sound = pygame.mixer.Sound(active_song)
         self.track_time = sound.get_length() 
-        
         print("song is ", self.track_time, " s long")
+        # load song
         pygame.mixer.music.load(active_song)
+        #overwrite start time
         self.start_time = time.time()
         self.after(2300, self.update_progress)
         pygame.mixer.music.play()
@@ -137,9 +141,6 @@ class MusicPlayer(ttk.Frame):
         self.status.set(STOPPED)
         pygame.mixer.music.stop()
     
-    def pausesong(self):
-        self.status.set(PAUSED)
-        pygame.mixer.music.pause()
         
     def update_progress(self):
         if self.progressbar is None:
