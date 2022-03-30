@@ -1,7 +1,6 @@
 import os
-import pickle
 import tkinter as tk
-from tkinter.messagebox import showerror, showinfo
+from tkinter.messagebox import askyesno, showerror, showinfo
 from tkinter import ttk
 from .music_player import MusicPlayer
 from .lyrics_window import LyricsWindow
@@ -51,10 +50,13 @@ class Interface(tk.Tk):
         
         # initialize necessairy variables
         self.Songs = self.load_songs_from_file()
-        self.show_songs(self.Songs)
+        
+        self.show_songs()
         self.Song = None
         self.display_sons = None
         self.thread_running = False
+        self.error_download=False
+        self.error_voc=False
         
     def make_music_player(self):
         self.music_player = MusicPlayer(self)
@@ -117,26 +119,19 @@ class Interface(tk.Tk):
     
     def load_songs_from_file(self) -> list[Song]:
         """load the saved song objects from file"""
-        if not self.downloads_path.is_file():
-            #make file if it does not exist
-            print("make downloads file because it does not exist")
-            open(self.downloads_path,"wb+").close()
-        #make sure file is not empty, this causes error when pickling
-        try:
-            if os.path.getsize(self.downloads_path) > 0:     
-                with open(self.downloads_path,"rb") as f:
-                    songs = pickle.load(f)
-                    return songs
-            return []
-        except ModuleNotFoundError:
-            print("TODO: deleting downloadsfile because pickling failed file")
-            #self.downloads_path.unlink()
-            showerror("Error","Downloadsfile was not found")
-            return []
+        songs = self.file_search.read_songs_from_file()
+        return songs
 
             
     def select_song_by_cursor(self):
         """select a song by cursor"""
+        
+        # ask for permission if lyrics window is not empty
+        if self.lyrics_window.Lyrics.get(0,tk.END) != ():
+            ans = askyesno("Next Song","Do you want to play the next song? Lyrisc will be cleared")
+            if ans != tk.YES:
+                return
+            
         if self.thread_running == True:
             print("thread running.... wait")
             return
@@ -158,7 +153,7 @@ class Interface(tk.Tk):
             return
         
         path = str(self.Song.file_path)
-        if path == []:
+        if path == "":
             showerror("Path Error", "no path for this song")
             return        
         
@@ -167,11 +162,10 @@ class Interface(tk.Tk):
         file = f"{self.export_folder}/backing_tracks/{basename}_Instruments.wav"
         
         #download song if it does not exist
-        if not self.Song.file_path.is_file():
+        if not self.Song.file_path.is_file() or self.error_download:
             self.download_song()
-            
         # make sure karaoke version of song exists, else create
-        if not os.path.isfile(file):
+        if not Path(file).is_file() or self.error_voc:
             self.remove_voc(path)
            
         # play song if its instrumental can be found
@@ -274,20 +268,26 @@ class Interface(tk.Tk):
                      
     def search_song_spotify(self):
         """search song in spotify, check if locally available"""
+        # clear entry
+        
         
         if self.thread_running == True:
-            print("thread running.... wait")
+            showerror("Busy","thread running.... wait")
+            self.update()
             return
         
         song = self.search_field.get()
+        self.search_field.delete(0,tk.END)
         
         if song == "" or song is None:
-            showinfo("empty search")
+            showinfo(title="search",message="Empty search! Please enter a valid search term")
+            self.update()
             return
         try:
             ans = self.search_cls.from_search_term(query=song)
-        except Exception as e:
-            showerror(str(e))
+        except ValueError as e:
+            showerror("Song not found", "search result error " + str(e))
+            self.update()
             return
         
         if isinstance(ans,Path):
@@ -302,6 +302,7 @@ class Interface(tk.Tk):
         else: self.Song = ans
         if self.Song is None:
             showerror("song object not created")
+            self.update()
             return
         
         if self.Song in self.Songs:
@@ -319,10 +320,8 @@ class Interface(tk.Tk):
             
         
 
-    def show_songs(self,songs:list[Song]):
+    def show_songs(self):
         """create a listbox for songs """
-        if not songs:
-            songs = []
         
         song_palette = ttk.Frame(self,padding=3)
         
@@ -336,15 +335,16 @@ class Interface(tk.Tk):
         
         self.display_songs.grid(rowspan=3,column=0,sticky=tk.NSEW)
         
-        for song in songs:
-            try:
-                self.display_songs.insert('',
-                                      tk.END, 
-                                      iid=song.display_name, 
-                                      values=(song.song_name,song.contributing_artists[0])) 
-            except Exception as e:
-                print("song not available: ", e)
-                continue
+        if self.Songs is not None:
+            for song in self.Songs:
+                try:
+                    self.display_songs.insert('',
+                                        tk.END, 
+                                        iid=song.display_name, 
+                                        values=(song.song_name,song.contributing_artists[0])) 
+                except Exception as e:
+                    print("song not available: ", e)
+                    continue
             
         
         # add a scrollbar
