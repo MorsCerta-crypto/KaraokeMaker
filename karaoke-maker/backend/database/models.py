@@ -8,10 +8,15 @@ Base = declarative_base()
 # definde a sqlalchemy model for the song table with song_name,artist_name,id,path and metadata
 class Song(Base):
     __tablename__ = "songs"
+    # key features of a song
     id = Column(Integer, primary_key=True)
     song_name = Column(String)
     artist_name = Column(String)
-    path = Column(String)
+    # Paths for the song
+    original_path = Column(String)
+    instrumentals_path = Column(String)
+    vocals_path = Column(String)
+    # Metadata (Optional)
     meta_data = Column(String)
     lyrics = Column(String)
     youtube_link = Column(String)
