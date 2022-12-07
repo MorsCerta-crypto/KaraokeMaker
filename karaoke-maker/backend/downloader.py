@@ -43,7 +43,6 @@ class Downloader(Thread):
         saving_path = Path(song_object.original_path)
         
         if saving_path.exists():
-            print("file already exists: ", song_object.song_name)
             return
         saving_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -66,7 +65,6 @@ class Downloader(Thread):
             video_info = youtube_dl.YoutubeDL(options).extract_info(
                 url=song_object.youtube_link, download=True
             )
-            print("returned video info: ", video_info)
             
         except Exception as e:
             print("download failed ", e)
@@ -77,10 +75,6 @@ class Downloader(Thread):
             artist = song_object.contributing_artists[0]
             lyrics = Lyrics.get_lyrics_by_artist_and_song(artist_name=artist,song_title=song_object.song_name)
             song_object.lyrics = lyrics if lyrics is not None else None
-            
-        print("file was successfully stored: ", song_object.song_name)
-        
-
         return 
 
 

@@ -125,7 +125,6 @@ class Interface(tk.Tk):
                 return
             
         if self.thread_running == True:
-            print("thread running.... wait with selecting song")
             return
         current_item = self.display_songs.focus()
         if len(self.display_songs.item(current_item)["values"]) == 2:
@@ -186,7 +185,6 @@ class Interface(tk.Tk):
                 downloading_thread.start()
                 self.monitor(downloading_thread)
             else:
-                print("delaying download")
                 self.after(1500, self.download_song)
             
     def monitor(self,thread):
@@ -198,7 +196,6 @@ class Interface(tk.Tk):
             self.thread_running = False
             assert self.Song is not None, "Song is None"
             self.db_queries.add_song(self.Song.to_db_dict(),self.db_session)
-            print(f"thread ended {thread.name} sucessfully")
            
     def toggle_complete_song(self):
         if self.play_complete_song['state'] == tk.DISABLED:

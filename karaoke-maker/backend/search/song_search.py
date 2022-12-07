@@ -99,9 +99,3 @@ class Search:
         """ generates a unique id for a song """
         return str(uuid.uuid4())
 
-
-if __name__ == "__main__":
-    config= {"song_format":"wav","song_path":"karaoke-maker/data/downloads"}
-    s = Search(config)
-    ans = s.from_search_term("ballad of hollywood jack and the rage cage")
-    print(ans)

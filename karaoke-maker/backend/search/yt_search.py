@@ -96,12 +96,3 @@ def get_score_above(cutoff: int, string1: str, string2: str):
     except Exception as e:
         print("could not get score for song, beacause of: ", e)
 
-
-if __name__ == "__main__":
-    ans = search_song(
-        "The Ballad of Hollywood Jack and the Rage Cage - Tenacious D",
-        ["jack black"],
-        240,
-        None,
-    )
-    print(ans)

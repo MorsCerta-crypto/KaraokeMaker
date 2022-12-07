@@ -131,7 +131,6 @@ class MusicPlayer(ttk.Frame):
         #save time of current song
         sound = pygame.mixer.Sound(active_song)
         self.track_time = sound.get_length() 
-        print("song is ", self.track_time, " s long")
         # load song
         pygame.mixer.music.load(active_song)
         #overwrite start time

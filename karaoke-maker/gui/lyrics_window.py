@@ -38,10 +38,7 @@ class LyricsWindow(ttk.Frame):
         
         lines:list = self._preprocess_text(text)
         self.Lyrics.delete(0,tk.END)
-        
-        #max_line_length = len(max(lines, key=lambda x: len(x)))
-        #print("found max line length:" , max_line_length)
-        
+
         if self.Lyrics is not None:
             for line in lines:
                 self.Lyrics.insert(tk.END,f" {line:20} ")
