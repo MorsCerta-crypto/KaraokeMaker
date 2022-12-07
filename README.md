@@ -17,3 +17,5 @@ make them environment variables to use this app. Then go to genius' website <htt
 2. Create a virtual environment to install the required dependencies from requirements.txt. "pip install -r requirements.txt"
 
 3. Then use python to run main.py
+
+![Screenshot](karaoke-maker/data/imgs/usage.png)
