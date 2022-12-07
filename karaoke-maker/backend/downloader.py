@@ -1,7 +1,7 @@
 from pathlib import Path
-import youtube_dl
+import youtube_dl # type: ignore
 from typing import Optional
-from .search import DownloadedSongs
+#from .search import DownloadedSongs
 from .lyrics import SongLyrics
 from utils import Song
 from threading import Thread
@@ -17,7 +17,7 @@ class Downloader(Thread):
         self.format = config["song_format"]
         self.output_path = config["output_path"]
         self.ytdl_format = config["ytdl_format"]
-        self.downloaded_songs = DownloadedSongs(self.output_path)
+        #self.downloaded_songs = DownloadedSongs(self.output_path)
         self.saving_name = ""
 
     def run(self)->None:
@@ -39,19 +39,18 @@ class Downloader(Thread):
             str: Path of the downloaded file
         """
             
-        self.saving_name = song_object.create_file_name(self.output_path)
-        saving_path = Path(self.saving_name)
         
-        # saving_path.parent.mkdir(parents=True, exist_ok=True)
-        if saving_path.is_file():
-            if not self.downloaded_songs.path_in_file(saving_path):
-                self.downloaded_songs.handle_download_success(song_object)
-            return 
+        saving_path = Path(song_object.original_path)
+        
+        if saving_path.exists():
+            print("file already exists: ", song_object.song_name)
+            return
+        saving_path.parent.mkdir(parents=True, exist_ok=True)
 
         options = {
             "format": self.ytdl_format,
             "keepvideo": False,
-            "outtmpl": self.saving_name,
+            "outtmpl": song_object.original_path,
             "noplaylist": True,
             "continue_dl": True,
             "postprocessors": [
@@ -80,7 +79,7 @@ class Downloader(Thread):
             song_object.lyrics = lyrics if lyrics is not None else None
             
         print("file was successfully stored: ", song_object.song_name)
-        self.downloaded_songs.handle_download_success(song_object)
+        
 
         return 
 

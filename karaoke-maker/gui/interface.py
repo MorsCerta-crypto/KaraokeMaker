@@ -5,23 +5,26 @@ from tkinter import ttk
 from .music_player import MusicPlayer
 from .lyrics_window import LyricsWindow
 from backend import Search, Downloader, VocalRemover, SongLyrics
-from utils import Song
+from utils import Song, from_db
 from pathlib import Path
-from backend import DownloadedSongs
+
+
+
   
 class Interface(tk.Tk):
-    def __init__(self, config):
+    def __init__(self, config, session, queries):
         super().__init__()
         self.config=config
         self.downloads_path = Path(config["downloads_path"])
-        self.export_folder = Path(config["export_folder"])
+        self.instrumentals_folder = Path(config["Instrumentals"])
+        self.db_session = session
+        self.db_queries = queries
         #make directory if it does not exist
         if not self.downloads_path.exists():
             self.downloads_path.parent.mkdir(parents=True, exist_ok=True)
             
         self.search_cls = Search(config)
         self.lyrics_cls = SongLyrics()
-        self.file_search = DownloadedSongs(config["downloads_path"])
         
         #configure window size
         self.root_height = int(config["root_height"])
@@ -63,8 +66,7 @@ class Interface(tk.Tk):
         self.music_player.grid(column=0,row=2,sticky=tk.NSEW)
         #configure frame
         self.music_player.grid_columnconfigure(index=0,weight=1,minsize=200)
-        self.music_player.grid_rowconfigure(index=2,weight=1,minsize=30)
-        
+        self.music_player.grid_rowconfigure(index=2,weight=1,minsize=30)   
         
     def make_lyrics_window(self):
         self.lyrics_window = LyricsWindow(self)
@@ -75,8 +77,7 @@ class Interface(tk.Tk):
         self.lyrics_window.grid_rowconfigure(index=0,weight=1,minsize=30)
         self.lyrics_window.grid_rowconfigure(index=1,weight=1,minsize=30)
         self.lyrics_window.grid_rowconfigure(index=2,weight=1,minsize=30)
-
-        
+     
     def set_lyrics(self,text:str):
         self.lyrics_window.set_lyrics(text)
         
@@ -84,22 +85,12 @@ class Interface(tk.Tk):
         """create the interface for searching song"""
         
         searchinterface = ttk.Frame(self,padding=10)
-        
         # create search buttons
         self.search_spot_commit = ttk.Button(searchinterface,
                                          text="Search on Spotify",
                                          command=self.search_song_spotify,
                                          width=20)
-        
-        self.search_loc_commit = ttk.Button(searchinterface,
-                                        text = "Search Local",
-                                        command=self.search_song_local,
-                                        width=20)
-
         self.search_spot_commit.grid(column=1,row=1,sticky=tk.EW)
-        self.search_loc_commit.grid(column=1,row=2,sticky=tk.EW)
-        
-        #input field
         label = ttk.Label(searchinterface,
                       text = "Enter your search term: ",
                       font=('Arial',16,'bold'))
@@ -119,10 +110,11 @@ class Interface(tk.Tk):
     
     def load_songs_from_file(self) -> list[Song]:
         """load the saved song objects from file"""
-        songs = self.file_search.read_songs_from_file()
-        return songs
-
-            
+        songs = self.db_queries.get_all_songs(self.db_session).all()
+        if songs == [] or not songs:
+            return []
+        return [from_db(song) for song in songs]
+         
     def select_song_by_cursor(self):
         """select a song by cursor"""
         
@@ -133,7 +125,7 @@ class Interface(tk.Tk):
                 return
             
         if self.thread_running == True:
-            print("thread running.... wait")
+            print("thread running.... wait with selecting song")
             return
         current_item = self.display_songs.focus()
         if len(self.display_songs.item(current_item)["values"]) == 2:
@@ -157,13 +149,14 @@ class Interface(tk.Tk):
             showerror("Path Error", "no path for this song")
             return        
         
-            
         basename = os.path.splitext(os.path.basename(path))[0]
-        file = f"{self.export_folder}/backing_tracks/{basename}_Instruments.wav"
+        file = f"{self.instrumentals_folder}/{basename}_Instruments.wav"
         
         #download song if it does not exist
         if not self.Song.file_path.is_file() or self.error_download:
             self.download_song()
+            # add to db
+        
         # make sure karaoke version of song exists, else create
         if not Path(file).is_file() or self.error_voc:
             self.remove_voc(path)
@@ -176,7 +169,6 @@ class Interface(tk.Tk):
         if self.Song.lyrics != None:
             self.set_lyrics(self.Song.lyrics)
    
-
     def remove_voc(self,path):
         """remove vocals in a seperate thread"""
         if not self.thread_running and Path(path).is_file():
@@ -185,7 +177,6 @@ class Interface(tk.Tk):
             self.monitor(vocalremover_thread)       
         else:
             self.after(1500, self.remove_voc, path)
-        
         
     def download_song(self):
         """downloads song if it is not in file"""
@@ -205,9 +196,10 @@ class Interface(tk.Tk):
             self.after(200, lambda: self.monitor(thread))
         else:
             self.thread_running = False
-            print(f"thread ended {thread.name}")
-        
-        
+            assert self.Song is not None, "Song is None"
+            self.db_queries.add_song(self.Song.to_db_dict(),self.db_session)
+            print(f"thread ended {thread.name} sucessfully")
+           
     def toggle_complete_song(self):
         if self.play_complete_song['state'] == tk.DISABLED:
             self.play_complete_song['state'] = tk.ACTIVE
@@ -230,41 +222,10 @@ class Interface(tk.Tk):
         
         if self.Song:
             self.Songs.remove(self.Song)
-            self.file_search.remove_song_from_file(self.Song)
-            self.display_songs.delete(current_item)
-            
-            
-
-    def search_song_local(self):
-        """local search in case no internet is available"""
-        if self.thread_running == True:
-            print("thread running.... wait")
-            return
-        
-        song_str = self.search_field.get()
-        max_match_ind = -1
-        max_match_val = 0
-        
-        if self.Songs == [] or self.Songs is None:
-            showinfo("Song-Info","no songs found in downloadsfile")
-            return
-        
-        for ind,song in enumerate(self.Songs):
-            current_match_val = 0
-            name = song.song_name
-            for word in name.split(" "):
-                for s in song_str.split(" "):
-                    if word.lower()==s.lower():
-                        current_match_val += 1
-            if current_match_val > max_match_val:
-                max_match_ind = ind
-        if max_match_ind != -1:
-            current_item = self.display_songs.focus(self.Songs[max_match_ind].display_name)
-            self.display_songs.move(current_item,"",0)
-            
-        else: 
-            showerror("song not available")
-        
+            # delete from db
+            self.db_queries.delete_song(self.Song.id, self.db_session)
+            # delete form ui
+            self.display_songs.delete(current_item)        
                      
     def search_song_spotify(self):
         """search song in spotify, check if locally available"""
@@ -290,16 +251,8 @@ class Interface(tk.Tk):
             self.update()
             return
         
-        if isinstance(ans,Path):
-            self.Song = self.file_search.song_from_path(ans)
-            if self.Song is not None:
-                # add song to file
-                print("handling download succes with song: ", self.Song.file_path)
-                self.file_search.handle_download_success(self.Song)
-            else: 
-                return
-            
-        else: self.Song = ans
+        self.Song = ans
+        
         if self.Song is None:
             showerror("song object not created")
             self.update()
@@ -314,22 +267,16 @@ class Interface(tk.Tk):
         else:
             self.Songs.append(self.Song)
             self.display_songs.insert('',
-                                      0, 
-                                      iid=self.Song.display_name, 
-                                      values=(self.Song.song_name,self.Song.contributing_artists[0])) 
+                                    0, 
+                                    iid=self.Song.display_name, 
+                                    values=(self.Song.song_name,self.Song.contributing_artists[0])) 
             
-        
-
     def show_songs(self):
         """create a listbox for songs """
-        
         song_palette = ttk.Frame(self,padding=3)
-        
-        
         # code for creating table where songs will be shown
         columns=("song_name","artist")
-        self.display_songs = ttk.Treeview(song_palette, columns=columns, show='headings'
-                                     )
+        self.display_songs = ttk.Treeview(song_palette, columns=columns, show='headings')
         self.display_songs.heading('song_name', text='Song Name')
         self.display_songs.heading('artist', text='Arist Name')
         
@@ -392,8 +339,7 @@ class Interface(tk.Tk):
         self.attributes("-fullscreen", False)
         return "break"
             
-
-def run_gui(config):
+def run_gui(config,engine,queries):
     
-    root = Interface(config)
+    root = Interface(config, engine, queries)
     root.mainloop()

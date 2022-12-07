@@ -1,10 +1,10 @@
 import sqlalchemy
-from models import create_db_schema, Song
+from .models import create_db_schema, DBSong
 # create a sqlalchemy engine
-def create_engine():
+def create_db_engine():
     """Create a sqlalchemy engine"""
     engine = sqlalchemy.create_engine(
-        "sqlite:///songs.db",
+        "sqlite:///karaoke-maker/data/songs.db",
         connect_args={"check_same_thread": False},
     )
     create_db_schema(engine)
@@ -13,11 +13,11 @@ def create_engine():
 
 
 if __name__ == "__main__":
-    e = create_engine()
-    # with sqlalchemy.orm.Session(e) as session:
+    pass
+    #e = create_db_engine()
+    #with sqlalchemy.orm.Session(e) as session:
     #     spongebob = Song(
-    #         song_name="spongebob",
-    #         id="2",
+    #         songs.id, songs.song_name, songs.artist_name, songs.original_path, songs.instrumentals_path, songs.vocals_path, songs.meta_data, songs.lyrics, songs.youtube_link, songs.format, songs.duration, songs.contributing_artists, songs.display_name
     #     )
     #     sandy = Song(
     #         song_name="sandy",
@@ -28,10 +28,10 @@ if __name__ == "__main__":
     #     session.commit()
     
     
-    session = sqlalchemy.orm.Session(e)
+    # session = sqlalchemy.orm.Session(e) # type: ignore
     
-    search = sqlalchemy.select(Song).where(Song.id == 1)
-    for song in session.scalars(search):
-        print(song)
+    # search = sqlalchemy.select(Song).where(Song.id == 1)
+    # for song in session.scalars(search):
+    #     print(song)
 
 

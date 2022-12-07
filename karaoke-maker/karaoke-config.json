@@ -12,7 +12,8 @@
     "n_fft": 2048,
     "pretrained_model": "karaoke-maker/data/models/baseline.pth",
     "sample_rate": 44100,
-    "export_folder": "karaoke-maker/data",
+    "Instrumentals": "karaoke-maker/data/instrumentals",
+    "Vocals": "karaoke-maker/data/vocals",
     "root_height": 800,
     "root_width": 1400
 }

@@ -1,11 +1,12 @@
 from pathlib import Path
 from typing import Optional, Union
-from spotipy import Spotify
-from spotipy.oauth2 import SpotifyClientCredentials
+import uuid
+from spotipy import Spotify # type: ignore
+from spotipy.oauth2 import SpotifyClientCredentials # type: ignore
 from ..lyrics import SongLyrics
 from . import yt_search
 from utils import Song
-from .file_search import DownloadedSongs
+
 
 class Search:
     def __init__(self, config:dict):
@@ -15,9 +16,8 @@ class Search:
 
         self.output_format = config["song_format"]
         self.songs_path = config["songs_path"]
-        self.file_search = DownloadedSongs(config["songs_path"])
-
-    def from_search_term(self, query: str) -> Optional[Union[Path,Song]]:
+        
+    def from_search_term(self, query: str) -> Optional[Song]:
         """tries to find a song on spotify with a given searchterm
 
         Args:
@@ -29,7 +29,7 @@ class Search:
         Returns:
             list[Song]: found songs
         """
-        print("searching for ", query)
+  
         # matches from spotify
         result = self.spotify_client.search(query, type="track")
         # return first result link or if no matches are found, raise Exception
@@ -45,7 +45,7 @@ class Search:
             raise e
         return song
     
-    def from_spotify_url(self, spotify_url: str) -> Union[Song,Path]:
+    def from_spotify_url(self, spotify_url: str) -> Song:
         """finds a song on spotify with a given song-url
 
         Args:
@@ -63,21 +63,7 @@ class Search:
         
         if raw_track_meta is None:
             raise ValueError("Couldn't get metadata from url")
-        #CHECK IF ALREADY DOWNLOADED
-        path = Path(Song(raw_track_meta=raw_track_meta,
-                    youtube_link = "None", 
-                    lyrics= "None", 
-                    song_name=raw_track_meta["name"],
-                    format=self.output_format).create_file_name())
         
-        print("check if path is file: ", path, path.is_file())
-        if path.is_file():
-            song_obj = self.try_recreate_song_obj(path)
-            if song_obj is not None:
-                return song_obj
-            
-            
-
         song_name = raw_track_meta["name"]
         isrc = raw_track_meta.get("external_ids", {}).get("isrc",None)
         duration = round(raw_track_meta["duration_ms"] / 1000, ndigits=3)
@@ -90,34 +76,28 @@ class Search:
         if youtube_link is None:
             raise LookupError("no youtube url was found")
         
-        
         Lyrics = SongLyrics()
         artist = contributing_artists[0]
         lyrics = Lyrics.get_lyrics_by_artist_and_song(artist_name=artist,song_title=song_name)
-        song_obj = Song(raw_track_meta=raw_track_meta, 
+        song_obj = Song(meta_data=raw_track_meta, 
                         youtube_link=youtube_link, 
+                        artist_name=artist,
+                        id = self.generate_unique_id(),
                         lyrics=lyrics,
                         song_name=song_name, 
                         format=self.output_format)
-        
-        # Create file name
-        song_obj.create_file_name()
-
         return song_obj
-     
-    def try_recreate_song_obj(self,path:Path):
-        song_match = self.file_search.song_from_path(path)
-        if song_match is not None and isinstance(song_match, Song):
-            return song_match
-        return None
 
     def get_metadata_from_url(self, spotify_url: str)->Optional[dict]:
-
+        """gets metadata from a spotify url"""
         if "open.spotify.com" not in spotify_url or "track" not in spotify_url:
             raise Exception(f"passed URL is not that of a track: {spotify_url}")
-
         raw_track_meta = self.spotify_client.track(spotify_url)
         return raw_track_meta
+    
+    def generate_unique_id(self):
+        """ generates a unique id for a song """
+        return str(uuid.uuid4())
 
 
 if __name__ == "__main__":

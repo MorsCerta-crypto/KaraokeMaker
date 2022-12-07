@@ -29,12 +29,9 @@ class VocalRemover(Thread):
         self.n_fft = config["n_fft"]
         self.tta = config["tta"]
         self.sample_rate = config["sample_rate"]
-        export_folder = config["export_folder"]
-                                  
-        if not export_folder.endswith("/"):
-            export_folder = export_folder + "/"
-        self.instrumentals_folder = export_folder + "backing_tracks/"
-        self.vocals_folder = export_folder + "voices/"
+        
+        self.instrumentals_folder = config["Instrumentals"]
+        self.vocals_folder = config["Vocals"]
 
         # create directories if necessary
         if not os.path.exists(self.instrumentals_folder):
@@ -44,9 +41,8 @@ class VocalRemover(Thread):
             
     def run(self):
         #check if file exists
-        if not os.path.exists(self.file):
-            self.remove_vocals(self.file)
-        else: print("file already exists")
+        self.remove_vocals(self.file)
+        
         
         
 
@@ -71,14 +67,14 @@ class VocalRemover(Thread):
         # nverse stft of instruments
         wave = utils.spectrogram_to_wave(y_spec, hop_length=self.hop_length)
         sf.write(
-            f"{self.instrumentals_folder}{basename}_Instruments.wav",
+            f"{self.instrumentals_folder}/{basename}_Instruments.wav",
             wave.T,  # type:ignore
             sample_rate,
         )
 
         # inverse stft of vocals
         wave = utils.spectrogram_to_wave(v_spec, hop_length=self.hop_length)
-        sf.write(f"{self.vocals_folder}{basename}_Vocals.wav", wave.T, sample_rate)  # type:ignore
+        sf.write(f"{self.vocals_folder}/{basename}_Vocals.wav", wave.T, sample_rate)  # type:ignore
 
     def _separate(self, X_mag_pad, roi_size):
         X_dataset = []

@@ -1,3 +1,4 @@
+from pathlib import Path
 import time
 import tkinter as tk 
 from tkinter import ttk
@@ -121,7 +122,9 @@ class MusicPlayer(ttk.Frame):
             self.track.set("")
             return
         active_song=self.songs[current_song_index]        
-        
+        if not Path(active_song).is_file():
+            self.track.set("")
+            return
         self.track.set(selected_song)
         self.status.set(PLAYING)
         

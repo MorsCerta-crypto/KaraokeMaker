@@ -3,7 +3,6 @@ from unidecode import unidecode
 from pytube import Search
 from rapidfuzz import fuzz #type: ignore
 
-
 def search_song(
     song_name: str, song_artists: list[str], song_duration: int, isrc: Optional[str]
 ) -> Optional[str]:

@@ -6,10 +6,10 @@ from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 # definde a sqlalchemy model for the song table with song_name,artist_name,id,path and metadata
-class Song(Base):
+class DBSong(Base):
     __tablename__ = "songs"
     # key features of a song
-    id = Column(Integer, primary_key=True)
+    id = Column(String, primary_key=True)
     song_name = Column(String)
     artist_name = Column(String)
     # Paths for the song
@@ -24,9 +24,9 @@ class Song(Base):
     duration = Column(Float)
     contributing_artists = Column(String)
     display_name = Column(String)
-    file_path = Column(String)
+    
     def __repr__(self):
-        return f"""Song(id={self.id}, 
+        return f"""DBSong(id={self.id}, 
                     song_name={self.song_name}, 
                     artist_name={self.artist_name}, 
                     path={self.path}, 
